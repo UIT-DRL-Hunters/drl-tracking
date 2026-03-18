@@ -51,6 +51,19 @@ body {
 
 /* THẺ SỰ KIỆN */
 .event-card { display: flex; align-items: center; border: 1px solid black; border-radius: 10px; padding: 10px; margin-bottom: 15px; background-color: #fafafa; }
+/* Trạng thái bình thường - cần có transition để mượt */
+.event-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+}
+
+/* Khi rà chuột vào */
+.event-card:hover {
+    transform: translateY(-5px); /* Nhấc thẻ lên 5px */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15); /* Đổ bóng đậm hơn cho cảm giác nổi */
+    border-color: #007bff; /* Đổi viền sang màu xanh chủ đạo của UIT */
+    background-color: #ffffff;
+}
 .event-icon { width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; margin-right: 15px; }
 .event-icon img { width: 100%; }
 .event-info h4 { margin: 0; font-size: 13px; color: #333; }
@@ -103,4 +116,82 @@ body {
     .dashboard-grid .profile-card, .dashboard-grid .progress-section { margin-bottom: 0; height: 100%; }
     .dashboard-grid .details-section, .dashboard-grid .events-section { grid-column: 1 / 3; margin-bottom: 0;}
     .circles-container { justify-content: space-around; }
+}
+/* --- 9. STYLING TRANG LỊCH SỬ --- */
+.history-section {
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px;
+    border: 1px solid black;
+}
+
+.history-item {
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+
+/* Đẩy cái tag trạng thái sang bên phải */
+.event-status {
+    margin-left: auto; 
+    padding-left: 15px; /* Tạo khoảng cách nhỏ để không dính vào chữ */
+    display: flex;
+    align-items: center;
+}
+
+/* Chỉnh lại cái tag cho nó gọn gàng */
+.status-tag {
+    white-space: nowrap; /* Giúp chữ không bị xuống dòng */
+    font-size: 11px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid #c8e6c9;
+    font-weight: bold;
+}
+/* --- 10. TOAST NOTIFICATION SYSTEM --- */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+}
+
+.toast {
+    background-color: #28a745; /* Màu xanh thành công */
+    color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 250px;
+    
+    /* Hiệu ứng trượt vào */
+    animation: slideInRight 0.4s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+}
+
+.toast-icon { margin-right: 12px; font-size: 20px; }
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.9); }
+}
+
+/* Mobile responsive cho Toast */
+@media (max-width: 768px) {
+    #toast-container {
+        top: 10px;
+        right: 10px;
+        left: 10px; /* Full chiều ngang trên mobile */
+    }
 }
