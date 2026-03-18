@@ -23,7 +23,6 @@
     <div class="main-container">
         
         <div id="page-0" class="page-content active-page dashboard-grid">
-            
             <div class="profile-card">
                 <img src="https://i.pravatar.cc/150?u=uitstudent" alt="Avatar Student" class="avatar">
                 <div class="profile-info">
@@ -52,16 +51,14 @@
 
             <div class="events-section">
                 <h3>SỰ KIỆN GỢI Ý CHO BẠN</h3>
-                
                 <div id="events-list"></div>
-                
             </div>
         </div>
 
         <div id="page-1" class="page-content">
-            <div class="progress-section" style="text-align: center; padding: 40px 20px;">
+            <div class="history-section">
                 <h3>📜 LỊCH SỬ THAM GIA</h3>
-                <p style="color: #777;">Chưa có dữ liệu sự kiện nào đã hoàn thành.</p>
+                <div id="history-list"></div>
             </div>
         </div>
 
@@ -91,17 +88,17 @@
     <div id="registerPopup" class="popup-overlay">
         <div class="popup-box">
             <h3>Xác nhận nhiệm vụ</h3>
-            <p>Bạn có chắc chắn muốn tham gia <strong>Chạy bộ tình nguyện khoa CNPM</strong> không?</p>
-            <p style="font-size: 12px; color: #dc3545; font-style: italic;">⚠️ Nhớ quét mã check-out lúc về để nhận +5 ĐRL nhé!</p>
+            <p>Bạn có chắc chắn muốn tham gia <strong>Tên sự kiện</strong> không?</p>
+            <p style="font-size: 12px; color: #dc3545; font-style: italic;">⚠️ Nhớ quét mã check-out lúc về nhé!</p>
             <div style="display: flex; justify-content: space-around; margin-top: 20px;">
-                <button style="padding: 10px 20px; border-radius: 10px; border: none; background: #e0e0e0; cursor: pointer; font-weight: bold;" onclick="closePopup()">Hủy</button>
-                <button style="padding: 10px 20px; border-radius: 10px; border: none; background: #28a745; color: white; cursor: pointer; font-weight: bold;" onclick="confirmRegister()">Xác nhận</button>
+                <button class="btn-action" onclick="closePopup()">Hủy</button>
+                <button class="btn-action open" onclick="confirmRegister()">Xác nhận</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. LOGIC CHUYỂN TAB (Giữ nguyên của ông)
+        // --- 1. QUẢN LÝ TABS ---
         const sidebarItems = document.querySelectorAll('.sidebar-item');
         const bottomNavItems = document.querySelectorAll('.nav-item');
         const pages = document.querySelectorAll('.page-content');
@@ -110,13 +107,16 @@
             sidebarItems.forEach(item => item.classList.remove('active'));
             bottomNavItems.forEach(item => item.classList.remove('active'));
             pages.forEach(page => page.classList.remove('active-page'));
+
             if (sidebarItems[index]) sidebarItems[index].classList.add('active');
             if (bottomNavItems[index]) bottomNavItems[index].classList.add('active');
             if (pages[index]) pages[index].classList.add('active-page');
+
+            // Nếu chuyển qua tab Lịch sử thì render lại danh sách mới nhất
+            if (index === 1) renderHistory();
         }
 
-        // 2. KHO DỮ LIỆU (Mock Data + LocalStorage)
-        // Kiểm tra xem trong máy đã có dữ liệu chưa, nếu chưa thì mới lấy list mặc định
+        // --- 2. DỮ LIỆU & LOCALSTORAGE ---
         let mockEvents = JSON.parse(localStorage.getItem('uit_events')) || [
             { id: 1, title: "HỘI THẢO AI IN HEALTHCARE", time: "🕒 14:00 - 16:00, 20/03/2026", points: 3, type: "registered", icon: "https://img.icons8.com/parakeet-line/48/clock.png" },
             { id: 2, title: "CHẠY BỘ TÌNH NGUYỆN KHOA CNPM", time: "🕒 07:00 - 11:00, 22/03/2026", points: 5, type: "open", icon: "https://img.icons8.com/parakeet-line/48/fire-element.png" },
@@ -125,18 +125,17 @@
 
         let currentEventId = null;
 
-        // 3. HÀM RENDER (Vẽ giao diện)
+        // --- 3. RENDER GIAO DIỆN ---
         function renderEvents() {
             const container = document.getElementById('events-list');
+            if (!container) return;
             container.innerHTML = ""; 
 
             mockEvents.forEach(event => {
                 let buttonHTML = (event.type === "registered") 
-                    ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ (Nhắc nhở)</button>`
+                    ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
                     : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
                 
-                let pointsClass = (event.type === "registered") ? "event-points" : "event-points highlight";
-
                 container.innerHTML += `
                     <div class="event-card">
                         <div class="event-icon ${event.type}"><img src="${event.icon}" alt="icon"></div>
@@ -145,21 +144,46 @@
                             <p>${event.time}</p>
                         </div>
                         <div class="event-action">
-                            <span class="${pointsClass}">+${event.points} ĐRL</span>
+                            <span class="event-points ${event.type === 'open' ? 'highlight' : ''}">+${event.points} ĐRL</span>
                             ${buttonHTML}
                         </div>
                     </div>
                 `;
             });
-            // Lưu dữ liệu vào máy mỗi khi vẽ lại để bảo toàn trạng thái
             localStorage.setItem('uit_events', JSON.stringify(mockEvents));
         }
 
-        // 4. LOGIC POP-UP THÔNG MINH
+        function renderHistory() {
+            const historyContainer = document.getElementById('history-list');
+            if (!historyContainer) return;
+            historyContainer.innerHTML = ""; 
+
+            const registeredEvents = mockEvents.filter(event => event.type === "registered");
+
+            if (registeredEvents.length === 0) {
+                historyContainer.innerHTML = `<p style="text-align: center; color: #777; padding: 30px;">Bạn chưa đăng ký sự kiện nào.</p>`;
+                return;
+            }
+
+            registeredEvents.forEach(event => {
+                historyContainer.innerHTML += `
+                    <div class="event-card">
+                        <div class="event-icon registered"><img src="${event.icon}" alt="icon"></div>
+                        <div class="event-info">
+                            <h4>${event.title}</h4>
+                            <p>${event.time}</p>
+                        </div>
+                        <div class="event-status"><span class="status-tag">ĐÃ ĐĂNG KÝ</span></div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- 4. POPUP LOGIC ---
         function openPopup(eventName, eventId) {
             currentEventId = eventId;
             const popup = document.getElementById("registerPopup");
-            popup.querySelector("strong").innerText = eventName; // Đổi tên sự kiện động
+            popup.querySelector("strong").innerText = eventName;
             popup.style.display = "flex";
         }
 
@@ -168,18 +192,47 @@
         }
 
         function confirmRegister() {
-            // Tìm sự kiện trong mảng và đổi trạng thái
             const ev = mockEvents.find(e => e.id === currentEventId);
             if (ev) ev.type = "registered";
-
             closePopup();
-            renderEvents(); // Vẽ lại giao diện ngay lập tức
-            
-            setTimeout(() => { alert("🎉 Đăng ký thành công! Đã lưu vào máy."); }, 200);
+            renderEvents();
+            setTimeout(() => { alert("🎉 Đăng ký thành công!"); }, 200);
         }
 
-        // Chạy lần đầu tiên khi mở web
+        // Chạy lần đầu
         renderEvents();
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            
+            // Tạo phần tử toast mới
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="toast-icon">🎉</span>
+                <span class="toast-msg">${message}</span>
+            `;
+            
+            // Nhét vào container
+            container.appendChild(toast);
+            
+            // Tự động xóa sau 3 giây (khớp với thời gian animation)
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // BÂY GIỜ: Hãy sửa lại hàm confirmRegister của ông
+        function confirmRegister() {
+            const ev = mockEvents.find(e => e.id === currentEventId);
+            if (ev) ev.type = "registered";
+            
+            closePopup();
+            renderEvents();
+            
+            // Thay alert bằng showToast
+            showToast(`Đã đăng ký thành công: ${ev.title}`);
+        }
     </script>
+    <div id="toast-container"></div>
 </body>
 </html>
