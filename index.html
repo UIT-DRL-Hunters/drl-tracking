@@ -53,29 +53,8 @@
             <div class="events-section">
                 <h3>SỰ KIỆN GỢI Ý CHO BẠN</h3>
                 
-                <div class="event-card">
-                    <div class="event-icon registered"><img src="https://img.icons8.com/parakeet-line/48/clock.png" alt="clock icon"></div>
-                    <div class="event-info">
-                        <h4>HỘI THẢO AI IN HEALTHCARE</h4>
-                        <p>🕒 14:00 - 16:00, 20/03/2026</p>
-                    </div>
-                    <div class="event-action">
-                        <span class="event-points">+3 ĐRL</span>
-                        <button class="btn-action registered">ĐÃ ĐĂNG KÝ (Nhắc nhở)</button>
-                    </div>
-                </div>
-
-                <div class="event-card">
-                    <div class="event-icon open"><img src="https://img.icons8.com/parakeet-line/48/fire-element.png" alt="fire-element icon"></div>
-                    <div class="event-info">
-                        <h4>CHẠY BỘ TÌNH NGUYỆN KHOA CNPM</h4>
-                        <p>🕒 07:00 - 11:00, 22/03/2026</p>
-                    </div>
-                    <div class="event-action">
-                        <span class="event-points highlight">+5 ĐRL</span>
-                        <button class="btn-action open" id="btn-demo-register" onclick="openPopup()">ĐĂNG KÝ</button>
-                    </div>
-                </div>
+                <div id="events-list"></div>
+                
             </div>
         </div>
 
@@ -122,7 +101,7 @@
     </div>
 
     <script>
-        // 1. Logic chuyển Tab
+        // 1. LOGIC CHUYỂN TAB (Giữ nguyên của ông)
         const sidebarItems = document.querySelectorAll('.sidebar-item');
         const bottomNavItems = document.querySelectorAll('.nav-item');
         const pages = document.querySelectorAll('.page-content');
@@ -131,15 +110,57 @@
             sidebarItems.forEach(item => item.classList.remove('active'));
             bottomNavItems.forEach(item => item.classList.remove('active'));
             pages.forEach(page => page.classList.remove('active-page'));
-
             if (sidebarItems[index]) sidebarItems[index].classList.add('active');
             if (bottomNavItems[index]) bottomNavItems[index].classList.add('active');
             if (pages[index]) pages[index].classList.add('active-page');
         }
 
-        // 2. Logic Pop-up
-        function openPopup() {
-            document.getElementById("registerPopup").style.display = "flex";
+        // 2. KHO DỮ LIỆU (Mock Data + LocalStorage)
+        // Kiểm tra xem trong máy đã có dữ liệu chưa, nếu chưa thì mới lấy list mặc định
+        let mockEvents = JSON.parse(localStorage.getItem('uit_events')) || [
+            { id: 1, title: "HỘI THẢO AI IN HEALTHCARE", time: "🕒 14:00 - 16:00, 20/03/2026", points: 3, type: "registered", icon: "https://img.icons8.com/parakeet-line/48/clock.png" },
+            { id: 2, title: "CHẠY BỘ TÌNH NGUYỆN KHOA CNPM", time: "🕒 07:00 - 11:00, 22/03/2026", points: 5, type: "open", icon: "https://img.icons8.com/parakeet-line/48/fire-element.png" },
+            { id: 3, title: "WORKSHOP: LÀM CHỦ GITHUB TRONG 2 GIỜ", time: "🕒 08:00 - 11:30, 25/03/2026", points: 5, type: "open", icon: "https://img.icons8.com/parakeet-line/48/code.png" }
+        ];
+
+        let currentEventId = null;
+
+        // 3. HÀM RENDER (Vẽ giao diện)
+        function renderEvents() {
+            const container = document.getElementById('events-list');
+            container.innerHTML = ""; 
+
+            mockEvents.forEach(event => {
+                let buttonHTML = (event.type === "registered") 
+                    ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ (Nhắc nhở)</button>`
+                    : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
+                
+                let pointsClass = (event.type === "registered") ? "event-points" : "event-points highlight";
+
+                container.innerHTML += `
+                    <div class="event-card">
+                        <div class="event-icon ${event.type}"><img src="${event.icon}" alt="icon"></div>
+                        <div class="event-info">
+                            <h4>${event.title}</h4>
+                            <p>${event.time}</p>
+                        </div>
+                        <div class="event-action">
+                            <span class="${pointsClass}">+${event.points} ĐRL</span>
+                            ${buttonHTML}
+                        </div>
+                    </div>
+                `;
+            });
+            // Lưu dữ liệu vào máy mỗi khi vẽ lại để bảo toàn trạng thái
+            localStorage.setItem('uit_events', JSON.stringify(mockEvents));
+        }
+
+        // 4. LOGIC POP-UP THÔNG MINH
+        function openPopup(eventName, eventId) {
+            currentEventId = eventId;
+            const popup = document.getElementById("registerPopup");
+            popup.querySelector("strong").innerText = eventName; // Đổi tên sự kiện động
+            popup.style.display = "flex";
         }
 
         function closePopup() {
@@ -147,19 +168,18 @@
         }
 
         function confirmRegister() {
-            closePopup(); // Đóng pop-up
+            // Tìm sự kiện trong mảng và đổi trạng thái
+            const ev = mockEvents.find(e => e.id === currentEventId);
+            if (ev) ev.type = "registered";
+
+            closePopup();
+            renderEvents(); // Vẽ lại giao diện ngay lập tức
             
-            // Đổi giao diện nút bấm
-            let btn = document.getElementById("btn-demo-register");
-            btn.innerText = "ĐÃ ĐĂNG KÝ (Nhắc nhở)";
-            btn.classList.remove("open");
-            btn.classList.add("registered");
-            
-            // Hiện thông báo nhỏ
-            setTimeout(() => {
-                alert("🎉 Nhận nhiệm vụ thành công!");
-            }, 300);
+            setTimeout(() => { alert("🎉 Đăng ký thành công! Đã lưu vào máy."); }, 200);
         }
+
+        // Chạy lần đầu tiên khi mở web
+        renderEvents();
     </script>
 </body>
 </html>
