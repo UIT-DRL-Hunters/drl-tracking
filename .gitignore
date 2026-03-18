@@ -1,0 +1,56 @@
+# ==========================================
+# 1. RÁC CỦA FRONTEND (Giao diện, UI, Node.js)
+# ==========================================
+node_modules/
+dist/
+build/
+npm-debug.log
+yarn-error.log
+
+# ==========================================
+# 2. RÁC CỦA BACKEND (JAVA / SPRING BOOT)
+# ==========================================
+# Thư mục build của Maven hoặc Gradle
+target/
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Các file biên dịch của Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# ==========================================
+# 3. RÁC CỦA TRÌNH SOẠN THẢO (IDE)
+# ==========================================
+# IntelliJ IDEA (Anh em code Java hay xài cái này)
+.idea/
+*.iml
+*.iws
+
+# Eclipse (Nếu có người xài Eclipse)
+.metadata/
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# ==========================================
+# 4. FILE BẢO MẬT TỐI CAO (CẤM ĐẨY LÊN)
+# ==========================================
+.env
+.env.*
+*.properties.local
+application-dev.yml
+application-dev.properties
+
+# ==========================================
+# 5. RÁC HỆ ĐIỀU HÀNH
+# ==========================================
+.DS_Store
+Thumbs.db
