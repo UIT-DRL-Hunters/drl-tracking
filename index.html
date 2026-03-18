@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UIT ĐRL Tracker - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <h2>🎓 UIT ĐRL</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-item active" onclick="switchTab(0)"><span class="icon">🏠</span><span>Trang chủ</span></div>
+            <div class="sidebar-item" onclick="switchTab(1)"><span class="icon">📜</span><span>Lịch sử</span></div>
+            <div class="sidebar-item" onclick="switchTab(2)"><span class="icon">🏆</span><span>Xếp hạng</span></div>
+            <div class="sidebar-item" onclick="switchTab(3)"><span class="icon">👤</span><span>Cá nhân</span></div>
+        </div>
+    </div>        
+    
+    <div class="main-container">
+        
+        <div id="page-0" class="page-content active-page dashboard-grid">
+            
+            <div class="profile-card">
+                <img src="https://i.pravatar.cc/150?u=uitstudent" alt="Avatar Student" class="avatar">
+                <div class="profile-info">
+                    <h2>NGUYEN VAN A (2252xxxx)</h2>
+                    <span class="level-badge">LEVEL 5 | 🏅 TRI THỨC BẤT TẬN</span>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <h3>TỔNG ĐIỂM RÈN LUYỆN: 72/90</h3>
+                <div class="total-progress-bar">
+                    <div class="progress-fill" style="width: 80%;"></div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h3>CHI TIẾT ĐIỂM THEO ĐIỀU</h3>
+                <div class="circles-container">
+                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#28a745 90%, #e0e0e0 0);"><span>18/20</span></div><p>Điều 1</p></div>
+                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#ffc107 48%, #e0e0e0 0);"><span>12/25</span></div><p>Điều 2</p></div>
+                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#dc3545 30%, #e0e0e0 0);"><span>6/20</span></div><p>Điều 3</p></div>
+                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#28a745 100%, #e0e0e0 0);"><span>15/15</span></div><p>Điều 4</p></div>
+                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#007bff 70%, #e0e0e0 0);"><span>7/10</span></div><p>Điều 5</p></div>
+                </div>
+            </div>
+
+            <div class="events-section">
+                <h3>SỰ KIỆN GỢI Ý CHO BẠN</h3>
+                
+                <div class="event-card">
+                    <div class="event-icon registered"><img src="https://img.icons8.com/parakeet-line/48/clock.png" alt="clock icon"></div>
+                    <div class="event-info">
+                        <h4>HỘI THẢO AI IN HEALTHCARE</h4>
+                        <p>🕒 14:00 - 16:00, 20/03/2026</p>
+                    </div>
+                    <div class="event-action">
+                        <span class="event-points">+3 ĐRL</span>
+                        <button class="btn-action registered">ĐÃ ĐĂNG KÝ (Nhắc nhở)</button>
+                    </div>
+                </div>
+
+                <div class="event-card">
+                    <div class="event-icon open"><img src="https://img.icons8.com/parakeet-line/48/fire-element.png" alt="fire-element icon"></div>
+                    <div class="event-info">
+                        <h4>CHẠY BỘ TÌNH NGUYỆN KHOA CNPM</h4>
+                        <p>🕒 07:00 - 11:00, 22/03/2026</p>
+                    </div>
+                    <div class="event-action">
+                        <span class="event-points highlight">+5 ĐRL</span>
+                        <button class="btn-action open" id="btn-demo-register" onclick="openPopup()">ĐĂNG KÝ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-1" class="page-content">
+            <div class="progress-section" style="text-align: center; padding: 40px 20px;">
+                <h3>📜 LỊCH SỬ THAM GIA</h3>
+                <p style="color: #777;">Chưa có dữ liệu sự kiện nào đã hoàn thành.</p>
+            </div>
+        </div>
+
+        <div id="page-2" class="page-content">
+            <div class="progress-section" style="text-align: center; padding: 40px 20px;">
+                <h3>🏆 BẢNG XẾP HẠNG KHOA</h3>
+                <p style="color: #777;">Tính năng đang được phát triển...</p>
+            </div>
+        </div>
+
+        <div id="page-3" class="page-content">
+            <div class="progress-section" style="text-align: center; padding: 40px 20px;">
+                <h3>👤 THÔNG TIN CÁ NHÂN</h3>
+                <p style="color: #777;">Tính năng đang được phát triển...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab(0)"><span class="nav-icon">🏠</span><span class="nav-text">Trang chủ</span></div>
+        <div class="nav-item" onclick="switchTab(1)"><span class="nav-icon">📜</span><span class="nav-text">Lịch sử</span></div>
+        <div class="nav-item" onclick="switchTab(2)"><span class="nav-icon">🏆</span><span class="nav-text">Xếp hạng</span></div>
+        <div class="nav-item" onclick="switchTab(3)"><span class="nav-icon">👤</span><span class="nav-text">Cá nhân</span></div>
+    </div>
+
+    <div id="registerPopup" class="popup-overlay">
+        <div class="popup-box">
+            <h3>Xác nhận nhiệm vụ</h3>
+            <p>Bạn có chắc chắn muốn tham gia <strong>Chạy bộ tình nguyện khoa CNPM</strong> không?</p>
+            <p style="font-size: 12px; color: #dc3545; font-style: italic;">⚠️ Nhớ quét mã check-out lúc về để nhận +5 ĐRL nhé!</p>
+            <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                <button style="padding: 10px 20px; border-radius: 10px; border: none; background: #e0e0e0; cursor: pointer; font-weight: bold;" onclick="closePopup()">Hủy</button>
+                <button style="padding: 10px 20px; border-radius: 10px; border: none; background: #28a745; color: white; cursor: pointer; font-weight: bold;" onclick="confirmRegister()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Logic chuyển Tab
+        const sidebarItems = document.querySelectorAll('.sidebar-item');
+        const bottomNavItems = document.querySelectorAll('.nav-item');
+        const pages = document.querySelectorAll('.page-content');
+
+        function switchTab(index) {
+            sidebarItems.forEach(item => item.classList.remove('active'));
+            bottomNavItems.forEach(item => item.classList.remove('active'));
+            pages.forEach(page => page.classList.remove('active-page'));
+
+            if (sidebarItems[index]) sidebarItems[index].classList.add('active');
+            if (bottomNavItems[index]) bottomNavItems[index].classList.add('active');
+            if (pages[index]) pages[index].classList.add('active-page');
+        }
+
+        // 2. Logic Pop-up
+        function openPopup() {
+            document.getElementById("registerPopup").style.display = "flex";
+        }
+
+        function closePopup() {
+            document.getElementById("registerPopup").style.display = "none";
+        }
+
+        function confirmRegister() {
+            closePopup(); // Đóng pop-up
+            
+            // Đổi giao diện nút bấm
+            let btn = document.getElementById("btn-demo-register");
+            btn.innerText = "ĐÃ ĐĂNG KÝ (Nhắc nhở)";
+            btn.classList.remove("open");
+            btn.classList.add("registered");
+            
+            // Hiện thông báo nhỏ
+            setTimeout(() => {
+                alert("🎉 Nhận nhiệm vụ thành công!");
+            }, 300);
+        }
+    </script>
+</body>
+</html>
