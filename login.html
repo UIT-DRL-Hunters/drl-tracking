@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - UIT ĐRL Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+
+    <div class="login-container">
+        <div class="login-header">
+            <h2>🎓 UIT ĐRL</h2>
+            <p>Hệ thống Quản lý Điểm Rèn Luyện</p>
+        </div>
+        
+        <div class="login-form">
+            <div class="input-group">
+                <label>Mã số sinh viên (MSSV)</label>
+                <input type="text" id="mssv" placeholder="VD: 2252xxxx" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="password" placeholder="Nhập mật khẩu" required>
+            </div>
+            
+            <button class="btn-login" onclick="handleLogin()">ĐĂNG NHẬP</button>
+            <p class="login-error" id="error-msg"></p>
+        </div>
+    </div>
+
+    <script>
+        // Logic xử lý đăng nhập (Giả lập Frontend)
+        function handleLogin() {
+            const mssv = document.getElementById('mssv').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            // Kiểm tra xem có nhập chữ nào chưa
+            if(mssv !== "" && pass !== "") {
+                // Lưu trạng thái vào máy là "Đã đăng nhập"
+                localStorage.setItem('uit_logged_in', 'true');
+                localStorage.setItem('uit_mssv', mssv); // Lưu luôn MSSV để mốt xài
+                
+                // Chuyển hướng bay thẳng sang trang Dashboard
+                window.location.href = "index.html";
+            } else {
+                errorMsg.innerText = "❌ Vui lòng nhập đầy đủ MSSV và Mật khẩu!";
+            }
+        }
+    </script>
+</body>
+</html>
