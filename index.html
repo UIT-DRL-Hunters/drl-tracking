@@ -32,9 +32,9 @@
             </div>
 
             <div class="progress-section">
-                <h3>TỔNG ĐIỂM RÈN LUYỆN: 72/90</h3>
+                <h3 id="score-text">TỔNG ĐIỂM RÈN LUYỆN: 0/90</h3>
                 <div class="total-progress-bar">
-                    <div class="progress-fill" style="width: 80%;"></div>
+                    <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
                 </div>
             </div>
 
@@ -70,10 +70,30 @@
         </div>
 
         <div id="page-3" class="page-content">
-            <div class="progress-section" style="text-align: center; padding: 40px 20px;">
-                <h3>👤 THÔNG TIN CÁ NHÂN</h3>
-                <p style="color: #777;">Tính năng đang được phát triển...</p>
+            
+            <div class="profile-page-card">
+                <img src="https://i.pravatar.cc/150?u=uitstudent" alt="Avatar Student" class="profile-page-avatar">
+                <h2 class="profile-name">NGUYỄN VĂN A</h2>
+                <p class="profile-mssv">MSSV: 2252xxxx</p>
+                <div class="profile-tags">
+                    <span class="tag faculty">Khoa KHMT</span>
+                    <span class="tag class">Lớp: CS01</span>
+                </div>
             </div>
+
+            <div class="qr-section">
+                <h3>📱 MÃ QR ĐIỂM DANH SỰ KIỆN</h3>
+                <p class="qr-desc">Đưa mã này cho BTC để quét Check-in / Check-out và tự động cập nhật điểm Rèn luyện.</p>
+                
+                <div class="qr-box">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=UIT-2252xxxx" alt="QR Code">
+                </div>
+                
+                <button class="btn-action open" style="margin-top: 15px; width: 100%; padding: 12px; font-size: 14px;" onclick="showToast('🔄 Đã làm mới mã QR an toàn!')">LÀM MỚI MÃ QR</button>
+            </div>
+            
+                <button class="btn-logout" onclick="handleLogout()">ĐĂNG XUẤT</button>
+
         </div>
 
     </div>
@@ -98,6 +118,30 @@
     </div>
 
     <script>
+        // --- 5. LOGIC TÍNH ĐIỂM & THANH TIẾN ĐỘ ---
+        function updateScore() {
+            const baseScore = 65; // Điểm nền (VD: Điểm học tập + hoạt động cũ)
+            const maxScore = 90;  // Điểm tối đa để đạt loại Xuất sắc
+
+            // Quét qua kho dữ liệu, tìm sự kiện "đã đăng ký" để gom điểm
+            let earnedPoints = 0;
+            mockEvents.forEach(event => {
+                if (event.type === "registered") {
+                    earnedPoints += event.points;
+                }
+            });
+
+            // Cộng dồn điểm và chốt sổ (không cho vượt quá 90)
+            let currentScore = baseScore + earnedPoints;
+            if (currentScore > maxScore) currentScore = maxScore;
+
+            // Tính % độ dài của thanh màu xanh
+            let percent = (currentScore / maxScore) * 100;
+
+            // Bắn dữ liệu ra giao diện HTML
+            document.getElementById('score-text').innerText = `TỔNG ĐIỂM RÈN LUYỆN: ${currentScore}/${maxScore}`;
+            document.getElementById('progress-fill').style.width = `${percent}%`;
+        }
         // --- 1. QUẢN LÝ TABS ---
         const sidebarItems = document.querySelectorAll('.sidebar-item');
         const bottomNavItems = document.querySelectorAll('.nav-item');
@@ -201,6 +245,7 @@
 
         // Chạy lần đầu
         renderEvents();
+        updateScore();
         function showToast(message) {
             const container = document.getElementById('toast-container');
             
@@ -228,9 +273,17 @@
             
             closePopup();
             renderEvents();
-            
+            updateScore();
             // Thay alert bằng showToast
             showToast(`Đã đăng ký thành công: ${ev.title}`);
+        }
+        
+        function handleLogout() {
+            // Xóa bộ nhớ đăng nhập
+            localStorage.removeItem('uit_logged_in');
+            
+            // Chuyển hướng về lại trang đăng nhập
+            window.location.href = "login.html";
         }
     </script>
     <div id="toast-container"></div>
