@@ -306,3 +306,158 @@ body {
     color: white;
     transform: translateY(-2px);
 }
+/* --- BỘ LỌC & TÌM KIẾM --- */
+.filter-container { margin-bottom: 15px; }
+
+#search-input { 
+    width: 100%; 
+    padding: 10px 15px; 
+    border: 1px solid black; 
+    border-radius: 10px; 
+    font-size: 13px; 
+    outline: none; 
+    margin-bottom: 10px; 
+    transition: border-color 0.3s; 
+}
+#search-input:focus { 
+    border-color: #007bff; 
+    box-shadow: 0 0 5px rgba(0,123,255,0.3); 
+}
+
+.filter-chips { 
+    display: flex; 
+    gap: 8px; 
+    overflow-x: auto; 
+    padding-bottom: 5px; 
+}
+.filter-chips::-webkit-scrollbar { height: 0; } /* Ẩn thanh cuộn cho gọn */
+
+.chip { 
+    padding: 6px 15px; 
+    border: 1px solid black; 
+    border-radius: 20px; 
+    background: white; 
+    font-size: 11px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    white-space: nowrap; 
+    transition: all 0.2s; 
+    color: #555; 
+}
+.chip:hover { background: #f0f2f5; }
+.chip.active { 
+    background: #007bff; 
+    color: white; 
+    border-color: #007bff; 
+}
+/* --- 14. NÚT CÔNG TẮC & DARK MODE --- */
+/* --- NÚT CÔNG TẮC & DARK MODE --- */
+/* --- Cập nhật lại class theme-toggle --- */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    overflow: hidden; /* Giấu icon khi nó trượt ra khỏi nút */
+}
+.theme-toggle:hover { transform: scale(1.1); }
+
+/* --- Hiệu ứng xoay và trượt cho Icon --- */
+.theme-toggle span {
+    position: absolute;
+    /* transition với cubic-bezier giúp icon có độ nảy nhẹ cực kỳ đã mắt */
+    transition: all 0.8s cubic-bezier(0.68, -0.55, 0.26, 1.55); 
+}
+
+/* Trạng thái Sáng (Light Mode - Mặc định) */
+.icon-moon {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+}
+.icon-sun {
+    opacity: 0;
+    transform: translateY(30px) rotate(90deg); /* Giấu mặt trời lặn xuống dưới */
+}
+
+/* Trạng thái Tối (Dark Mode - Khi body có class dark-mode) */
+body.dark-mode .icon-moon {
+    opacity: 0;
+    transform: translateY(-30px) rotate(-90deg); /* Đẩy mặt trăng bay vút lên trên */
+}
+body.dark-mode .icon-sun {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg); /* Trồi mặt trời lên giữa */
+}
+
+@media (max-width: 768px) {
+    .theme-toggle { top: 10px; right: 10px; width: 40px; height: 40px; }
+}
+
+/* --- LỚP ÁO DARK MODE BẮT ĐẦU TỪ ĐÂY --- */
+/* --- LẮP "PHUỘC NHÚN" CHUYỂN MÀU MƯỢT MÀ --- */
+body, .profile-card, .progress-section, .details-section, .events-section,
+.history-section, .qr-section, .popup-box, .login-container, .sidebar, 
+.bottom-nav, .sidebar-item, .event-card, .chip, #search-input, .qr-box,
+h2, h3, h4, p, span, .circle, .circle::before {
+    transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
+}
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+/* Đổi màu các thẻ (Card) */
+body.dark-mode .profile-card, 
+body.dark-mode .progress-section, 
+body.dark-mode .details-section, 
+body.dark-mode .events-section,
+body.dark-mode .history-section,
+body.dark-mode .qr-section,
+body.dark-mode .popup-box,
+body.dark-mode .login-container {
+    background-color: #1e1e1e;
+    border-color: #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* Đổi màu thanh điều hướng & Sidebar */
+body.dark-mode .sidebar { background-color: #1e1e1e; border-right-color: #333; }
+body.dark-mode .bottom-nav { background-color: #1e1e1e; border-top-color: #333; }
+body.dark-mode .sidebar-item { color: #aaa; }
+body.dark-mode .sidebar-item:hover { background-color: #2a2a2a; }
+body.dark-mode .sidebar-item.active { background-color: #2a3b4c; }
+
+/* Xử lý text và các tiểu tiết */
+body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode p { color: #e0e0e0; }
+body.dark-mode .profile-info h2 { color: #fff; }
+body.dark-mode .qr-desc { color: #aaa; }
+
+/* Xử lý màu vòng tròn điểm */
+body.dark-mode .circle { border-color: #333; }
+body.dark-mode .circle::before { background-color: #1e1e1e; }
+body.dark-mode .circle span { color: #fff; }
+
+/* Xử lý thẻ sự kiện và nút tìm kiếm */
+body.dark-mode .event-card { background-color: #2a2a2a; border-color: #444; }
+body.dark-mode .event-card:hover { background-color: #333; border-color: #007bff; }
+body.dark-mode .chip { background: #2a2a2a; color: #aaa; border-color: #444; }
+body.dark-mode .chip:hover { background: #333; }
+body.dark-mode .chip.active { background: #007bff; color: white; border-color: #007bff; }
+body.dark-mode #search-input { background: #2a2a2a; color: white; border-color: #444; }
+
+/* Đổi màu chính cái nút công tắc */
+body.dark-mode .theme-toggle { background: #333; border-color: #555; }
+body.dark-mode .qr-box { background-color: #2a2a2a; border-color: #555; }

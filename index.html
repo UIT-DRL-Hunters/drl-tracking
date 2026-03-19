@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
+        <span class="icon-moon">🌙</span>
+        <span class="icon-sun">☀️</span>
+    </button>
 
     <div class="sidebar">
         <div class="sidebar-logo">
@@ -38,19 +42,25 @@
                 </div>
             </div>
 
-            <div class="details-section">
+           <div class="details-section">
                 <h3>CHI TIẾT ĐIỂM THEO ĐIỀU</h3>
-                <div class="circles-container">
-                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#28a745 90%, #e0e0e0 0);"><span>18/20</span></div><p>Điều 1</p></div>
-                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#ffc107 48%, #e0e0e0 0);"><span>12/25</span></div><p>Điều 2</p></div>
-                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#dc3545 30%, #e0e0e0 0);"><span>6/20</span></div><p>Điều 3</p></div>
-                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#28a745 100%, #e0e0e0 0);"><span>15/15</span></div><p>Điều 4</p></div>
-                    <div class="circle-item"><div class="circle" style="background: conic-gradient(#007bff 70%, #e0e0e0 0);"><span>7/10</span></div><p>Điều 5</p></div>
+                <div class="circles-container" id="circles-container">
+                    
                 </div>
             </div>
 
             <div class="events-section">
                 <h3>SỰ KIỆN GỢI Ý CHO BẠN</h3>
+                
+                <div class="filter-container">
+                    <input type="text" id="search-input" placeholder="🔍 Tìm tên sự kiện, câu lạc bộ..." onkeyup="handleFilter()">
+                    <div class="filter-chips">
+                        <button class="chip active" onclick="setFilter('all', this)">Tất cả</button>
+                        <button class="chip" onclick="setFilter('dieu1', this)">Điều 1</button>
+                        <button class="chip" onclick="setFilter('dieu2', this)">Điều 2</button>
+                        <button class="chip" onclick="setFilter('dieu3', this)">Điều 3</button>
+                    </div>
+                </div>
                 <div id="events-list"></div>
             </div>
         </div>
@@ -73,8 +83,8 @@
             
             <div class="profile-page-card">
                 <img src="https://i.pravatar.cc/150?u=uitstudent" alt="Avatar Student" class="profile-page-avatar">
-                <h2 class="profile-name">NGUYỄN VĂN A</h2>
-                <p class="profile-mssv">MSSV: 2252xxxx</p>
+                <h2 class="profile-name">SINH VIÊN UIT</h2>
+                <p class="profile-mssv" id="profile-mssv-display">MSSV: Đang tải...</p>
                 <div class="profile-tags">
                     <span class="tag faculty">Khoa KHMT</span>
                     <span class="tag class">Lớp: CS01</span>
@@ -86,13 +96,13 @@
                 <p class="qr-desc">Đưa mã này cho BTC để quét Check-in / Check-out và tự động cập nhật điểm Rèn luyện.</p>
                 
                 <div class="qr-box">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=UIT-2252xxxx" alt="QR Code">
+                    <img id="profile-qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=UIT-Loading" alt="QR Code">
                 </div>
                 
-                <button class="btn-action open" style="margin-top: 15px; width: 100%; padding: 12px; font-size: 14px;" onclick="showToast('🔄 Đã làm mới mã QR an toàn!')">LÀM MỚI MÃ QR</button>
+                <button class="btn-action open" style="margin-top: 15px; width: 100%; padding: 12px; font-size: 14px;" onclick="refreshQRCode()">LÀM MỚI MÃ QR</button>
             </div>
             
-                <button class="btn-logout" onclick="handleLogout()">ĐĂNG XUẤT</button>
+            <button class="btn-logout" onclick="handleLogout()">ĐĂNG XUẤT</button>
 
         </div>
 
@@ -119,29 +129,71 @@
 
     <script>
         // --- 5. LOGIC TÍNH ĐIỂM & THANH TIẾN ĐỘ ---
+        // --- 5. LOGIC TÍNH ĐIỂM & THANH TIẾN ĐỘ TỰ ĐỘNG ---
         function updateScore() {
-            const baseScore = 65; // Điểm nền (VD: Điểm học tập + hoạt động cũ)
-            const maxScore = 90;  // Điểm tối đa để đạt loại Xuất sắc
+            // 1. Cấu hình điểm gốc (Giả sử đây là điểm ông đã có sẵn từ trước)
+            const baseTotalScore = 65; 
+            const maxTotalScore = 90;  
 
-            // Quét qua kho dữ liệu, tìm sự kiện "đã đăng ký" để gom điểm
-            let earnedPoints = 0;
+            const categoryStats = {
+                dieu1: { name: "Điều 1", base: 15, max: 20 },
+                dieu2: { name: "Điều 2", base: 7, max: 25 },
+                dieu3: { name: "Điều 3", base: 6, max: 20 },
+                dieu4: { name: "Điều 4", base: 15, max: 15 },
+                dieu5: { name: "Điều 5", base: 7, max: 10 }
+            };
+
+            // 2. Quét kho sự kiện để gom điểm
+            let earnedByCategory = { dieu1: 0, dieu2: 0, dieu3: 0, dieu4: 0, dieu5: 0 };
+            let totalEarned = 0;
+
             mockEvents.forEach(event => {
                 if (event.type === "registered") {
-                    earnedPoints += event.points;
+                    totalEarned += event.points; // Cộng vào tổng
+                    if (event.category && earnedByCategory[event.category] !== undefined) {
+                        earnedByCategory[event.category] += event.points; // Cộng vào Điều tương ứng
+                    }
                 }
             });
 
-            // Cộng dồn điểm và chốt sổ (không cho vượt quá 90)
-            let currentScore = baseScore + earnedPoints;
-            if (currentScore > maxScore) currentScore = maxScore;
+            // 3. Cập nhật thanh điểm tổng
+            let currentTotal = baseTotalScore + totalEarned;
+            if (currentTotal > maxTotalScore) currentTotal = maxTotalScore;
+            let percentTotal = (currentTotal / maxTotalScore) * 100;
 
-            // Tính % độ dài của thanh màu xanh
-            let percent = (currentScore / maxScore) * 100;
+            document.getElementById('score-text').innerText = `TỔNG ĐIỂM RÈN LUYỆN: ${currentTotal}/${maxTotalScore}`;
+            document.getElementById('progress-fill').style.width = `${percentTotal}%`;
 
-            // Bắn dữ liệu ra giao diện HTML
-            document.getElementById('score-text').innerText = `TỔNG ĐIỂM RÈN LUYỆN: ${currentScore}/${maxScore}`;
-            document.getElementById('progress-fill').style.width = `${percent}%`;
+            // 4. Cập nhật các vòng tròn chi tiết
+            const circlesContainer = document.getElementById('circles-container');
+            if (!circlesContainer) return;
+            circlesContainer.innerHTML = ""; // Xóa các vòng tròn cũ
+
+            // Duyệt qua 5 điều để vẽ lại vòng tròn
+            const catKeys = ['dieu1', 'dieu2', 'dieu3', 'dieu4', 'dieu5'];
+            catKeys.forEach(key => {
+                let currentCatScore = categoryStats[key].base + earnedByCategory[key];
+                if (currentCatScore > categoryStats[key].max) currentCatScore = categoryStats[key].max; // Không cho vượt trần
+                
+                let percentCat = (currentCatScore / categoryStats[key].max) * 100;
+                
+                // Đổi màu thông minh: Dưới 50% là Đỏ, 50-80% là Vàng, trên 80% là Xanh
+                let color = "#dc3545"; // Đỏ
+                if (percentCat >= 80) color = "#28a745"; // Xanh lá
+                else if (percentCat >= 50) color = "#ffc107"; // Vàng
+                if (currentCatScore === categoryStats[key].max) color = "#007bff"; // Tràn cây thì cho Xanh dương UIT luôn
+
+                circlesContainer.innerHTML += `
+                    <div class="circle-item">
+                        <div class="circle" style="background: conic-gradient(${color} ${percentCat}%, #e0e0e0 0);">
+                            <span>${currentCatScore}/${categoryStats[key].max}</span>
+                        </div>
+                        <p>${categoryStats[key].name}</p>
+                    </div>
+                `;
+            });
         }
+
         // --- 1. QUẢN LÝ TABS ---
         const sidebarItems = document.querySelectorAll('.sidebar-item');
         const bottomNavItems = document.querySelectorAll('.nav-item');
@@ -156,44 +208,68 @@
             if (bottomNavItems[index]) bottomNavItems[index].classList.add('active');
             if (pages[index]) pages[index].classList.add('active-page');
 
-            // Nếu chuyển qua tab Lịch sử thì render lại danh sách mới nhất
             if (index === 1) renderHistory();
         }
 
         // --- 2. DỮ LIỆU & LOCALSTORAGE ---
         let mockEvents = JSON.parse(localStorage.getItem('uit_events')) || [
-            { id: 1, title: "HỘI THẢO AI IN HEALTHCARE", time: "🕒 14:00 - 16:00, 20/03/2026", points: 3, type: "registered", icon: "https://img.icons8.com/parakeet-line/48/clock.png" },
-            { id: 2, title: "CHẠY BỘ TÌNH NGUYỆN KHOA CNPM", time: "🕒 07:00 - 11:00, 22/03/2026", points: 5, type: "open", icon: "https://img.icons8.com/parakeet-line/48/fire-element.png" },
-            { id: 3, title: "WORKSHOP: LÀM CHỦ GITHUB TRONG 2 GIỜ", time: "🕒 08:00 - 11:30, 25/03/2026", points: 5, type: "open", icon: "https://img.icons8.com/parakeet-line/48/code.png" }
+            { id: 1, title: "HỘI THẢO AI IN HEALTHCARE", time: "🕒 14:00, 20/03/2026", points: 3, type: "registered", category: "dieu1", icon: "https://img.icons8.com/parakeet-line/48/clock.png" },
+            { id: 2, title: "CHẠY BỘ TÌNH NGUYỆN KHOA CNPM", time: "🕒 07:00, 22/03/2026", points: 5, type: "open", category: "dieu3", icon: "https://img.icons8.com/parakeet-line/48/fire-element.png" },
+            { id: 3, title: "WORKSHOP: LÀM CHỦ GITHUB", time: "🕒 08:00, 25/03/2026", points: 5, type: "open", category: "dieu2", icon: "https://img.icons8.com/parakeet-line/48/code.png" },
+            { id: 4, title: "NGÀY HỘI VIỆC LÀM UIT 2026", time: "🕒 08:00, 10/04/2026", points: 10, type: "open", category: "dieu1", icon: "https://img.icons8.com/parakeet-line/48/briefcase.png" }
         ];
 
         let currentEventId = null;
+        let currentFilter = 'all';
 
-        // --- 3. RENDER GIAO DIỆN ---
-        function renderEvents() {
+        // --- 3. RENDER VÀ FILTER GIAO DIỆN ---
+        function setFilter(category, btnElement) {
+            currentFilter = category;
+            document.querySelectorAll('.chip').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            handleFilter(); 
+        }
+
+        function handleFilter() {
+            const searchInput = document.getElementById('search-input');
+            const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+            
             const container = document.getElementById('events-list');
             if (!container) return;
             container.innerHTML = ""; 
 
-            mockEvents.forEach(event => {
-                let buttonHTML = (event.type === "registered") 
-                    ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
-                    : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
-                
-                container.innerHTML += `
-                    <div class="event-card">
-                        <div class="event-icon ${event.type}"><img src="${event.icon}" alt="icon"></div>
-                        <div class="event-info">
-                            <h4>${event.title}</h4>
-                            <p>${event.time}</p>
-                        </div>
-                        <div class="event-action">
-                            <span class="event-points ${event.type === 'open' ? 'highlight' : ''}">+${event.points} ĐRL</span>
-                            ${buttonHTML}
-                        </div>
-                    </div>
-                `;
+            const filteredEvents = mockEvents.filter(event => {
+                const matchText = event.title.toLowerCase().includes(searchText);
+                const matchCategory = (currentFilter === 'all') || (event.category === currentFilter);
+                return matchText && matchCategory;
             });
+
+            if (filteredEvents.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: #777; font-size: 13px; margin-top: 20px;">Không tìm thấy sự kiện phù hợp 🥲</p>`;
+            } else {
+                filteredEvents.forEach(event => {
+                    let buttonHTML = (event.type === "registered") 
+                        ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
+                        : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
+                    
+                    let catName = event.category === 'dieu1' ? 'Điều 1' : (event.category === 'dieu2' ? 'Điều 2' : 'Điều 3');
+
+                    container.innerHTML += `
+                        <div class="event-card">
+                            <div class="event-icon ${event.type}"><img src="${event.icon}" alt="icon"></div>
+                            <div class="event-info">
+                                <h4>${event.title}</h4>
+                                <p>${event.time}</p>
+                                <span style="font-size: 9px; color: white; background: #6c757d; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">${catName}</span>
+                            </div>
+                            <div class="event-action">
+                                <span class="event-points ${event.type === 'open' ? 'highlight' : ''}">+${event.points} ĐRL</span>
+                                ${buttonHTML}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
             localStorage.setItem('uit_events', JSON.stringify(mockEvents));
         }
 
@@ -223,7 +299,7 @@
             });
         }
 
-        // --- 4. POPUP LOGIC ---
+        // --- 4. POPUP & TOAST LOGIC ---
         function openPopup(eventName, eventId) {
             currentEventId = eventId;
             const popup = document.getElementById("registerPopup");
@@ -235,56 +311,92 @@
             document.getElementById("registerPopup").style.display = "none";
         }
 
-        function confirmRegister() {
-            const ev = mockEvents.find(e => e.id === currentEventId);
-            if (ev) ev.type = "registered";
-            closePopup();
-            renderEvents();
-            setTimeout(() => { alert("🎉 Đăng ký thành công!"); }, 200);
-        }
-
-        // Chạy lần đầu
-        renderEvents();
-        updateScore();
         function showToast(message) {
             const container = document.getElementById('toast-container');
-            
-            // Tạo phần tử toast mới
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.innerHTML = `
                 <span class="toast-icon">🎉</span>
                 <span class="toast-msg">${message}</span>
             `;
-            
-            // Nhét vào container
             container.appendChild(toast);
-            
-            // Tự động xóa sau 3 giây (khớp với thời gian animation)
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
+            setTimeout(() => { toast.remove(); }, 3000);
         }
 
-        // BÂY GIỜ: Hãy sửa lại hàm confirmRegister của ông
         function confirmRegister() {
             const ev = mockEvents.find(e => e.id === currentEventId);
             if (ev) ev.type = "registered";
             
             closePopup();
-            renderEvents();
+            handleFilter(); // <--- CHỖ NÀY ĐÃ SỬA THÀNH handleFilter()
             updateScore();
-            // Thay alert bằng showToast
             showToast(`Đã đăng ký thành công: ${ev.title}`);
         }
         
         function handleLogout() {
-            // Xóa bộ nhớ đăng nhập
             localStorage.removeItem('uit_logged_in');
-            
-            // Chuyển hướng về lại trang đăng nhập
             window.location.href = "login.html";
         }
+
+        // --- KHỞI CHẠY LẦN ĐẦU ---
+        // --- 7. LOGIC TRANG CÁ NHÂN & QR CODE ĐỘNG ---
+        function loadUserProfile() {
+            // Lấy MSSV từ localStorage mà trang login.html đã lưu
+            const mssv = localStorage.getItem('uit_mssv') || 'Khách';
+
+            // Hiển thị MSSV lên giao diện
+            const mssvDisplay = document.getElementById('profile-mssv-display');
+            if (mssvDisplay && mssv !== 'Khách') {
+                mssvDisplay.innerText = `MSSV: ${mssv}`;
+            }
+
+            // Tạo QR code lần đầu tiên (Truyền false để KHÔNG hiện thông báo lúc vừa load trang)
+            refreshQRCode(false); 
+        }
+
+        // Thêm tham số showNotification = true
+        function refreshQRCode(showNotification = true) {
+            const mssv = localStorage.getItem('uit_mssv') || 'Khách';
+            if (mssv === 'Khách') return;
+
+            const qrImage = document.getElementById('profile-qr-code');
+            if (qrImage) {
+                // Tạo một đoạn mã ngẫu nhiên dựa trên thời gian thực
+                const timestamp = new Date().getTime(); 
+                const qrData = `UIT-${mssv}-${timestamp}`;
+                
+                // Gọi API tạo QR mới
+                qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`;
+                
+                // Chỉ hiện thông báo khi bấm nút (showNotification = true)
+                if(showNotification && typeof showToast === "function") {
+                    showToast('🔄Đã làm mới mã QR thàng công!');
+                }
+            }
+        }
+        // --- 9. LOGIC BẬT/TẮT DARK MODE ---
+        // --- 9. LOGIC BẬT/TẮT DARK MODE ---
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            
+            const isDark = body.classList.contains('dark-mode');
+            
+            // Lưu trạng thái vào máy để F5 không bị mất
+            localStorage.setItem('uit_theme', isDark ? 'dark' : 'light');
+        }
+
+        function loadTheme() {
+            // Lấy trí nhớ từ máy xem lần trước user xài màu gì
+            const savedTheme = localStorage.getItem('uit_theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        }
+        // --- KHỞI CHẠY LẦN ĐẦU (Gom hết xuống cuối cùng) ---
+        handleFilter(); 
+        updateScore();
+        loadUserProfile();
     </script>
     <div id="toast-container"></div>
 </body>
