@@ -83,6 +83,22 @@
         </div>
 
         <script>
+            // Hàm hiển thị Toast Notification
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return; // Đề phòng lỗi nếu chưa có container
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="toast-icon">🎉</span>
+                <span class="toast-msg">${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            // Tự động xóa sau 3 giây
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
             // Load danh sách sự kiện từ Backend
             async function fetchEvents() {
                 const res = await fetch('http://localhost:3000/api/events', { cache: 'no-store' });
@@ -118,7 +134,7 @@
                     body: JSON.stringify(newEv)
                 });
                 
-                alert('Tạo sự kiện thành công!');
+                showToast("Tạo sự kiện thành công!");
                 fetchEvents(); // Load lại danh sách
             }
 
@@ -137,6 +153,8 @@
 
             // Chạy ngay khi mở trang
             fetchEvents();
+            
         </script>
+        <div id="toast-container"></div>
     </body>
     </html>
