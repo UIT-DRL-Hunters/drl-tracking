@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - UIT ĐRL Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* CSS bổ sung riêng cho form đăng ký để chứa các chip bias */
+        .bias-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+        }
+        /* Mượn lại class chip nhưng cho nó bớt padding lại xíu để nhét được nhiều */
+        .bias-chip {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            background: white;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #555;
+            user-select: none;
+        }
+        .bias-chip.selected {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+            box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        .login-footer a { color: #007bff; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body class="login-body">
+
+    <div class="login-container" style="max-width: 450px;"> <div class="login-header">
+            <h2>🎓 ĐĂNG KÝ</h2>
+            <p>Tạo tài khoản & Thiết lập ưu tiên</p>
+        </div>
+        
+        <div class="login-form">
+            <div class="input-group">
+                <label>Mã số sinh viên (MSSV)</label>
+                <input type="text" id="reg-mssv" placeholder="VD: 2252xxxx" required>
+            </div>
+
+            <div class="input-group">
+                <label>Họ và Tên</label>
+                <input type="text" id="reg-name" placeholder="VD: Nguyễn Văn A" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="reg-password" placeholder="Tạo mật khẩu" required>
+            </div>
+
+            <div class="input-group">
+                <label>Sở thích / Ưu tiên hoạt động (Bias)</label>
+                <p style="font-size: 11px; color: #777; margin-top: -5px; margin-bottom: 10px;">Chọn các mảng bạn quan tâm để hệ thống gợi ý sự kiện:</p>
+                <div class="bias-container" id="bias-list">
+                    <div class="bias-chip" onclick="toggleBias(this)" data-value="ai_dev">AI & Machine Learning</div>
+                    <div class="bias-chip" onclick="toggleBias(this)" data-value="devops">DevOps & Cloud</div>
+                    <div class="bias-chip" onclick="toggleBias(this)" data-value="blockchain">Blockchain</div>
+                    <div class="bias-chip" onclick="toggleBias(this)" data-value="esports">E-sports (Genshin, Roblox)</div>
+                    <div class="bias-chip" onclick="toggleBias(this)" data-value="photography">Nhiếp ảnh / Media</div>
+                    <div class="bias-chip" onclick="toggleBias(this)" data-value="volunteer">Tình nguyện / Mùa hè xanh</div>
+                </div>
+            </div>
+            
+            <button class="btn-login" onclick="handleRegister()">TẠO TÀI KHOẢN</button>
+            <p class="login-error" id="reg-error-msg"></p>
+
+            <div class="login-footer">
+                Đã có tài khoản? <a href="login.html">Đăng nhập ngay</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hàm xử lý hiệu ứng click chọn Bias
+        function toggleBias(element) {
+            element.classList.toggle('selected');
+        }
+
+        // Logic xử lý gửi data đăng ký xuống Backend
+        async function handleRegister() {
+            const mssv = document.getElementById('reg-mssv').value;
+            const name = document.getElementById('reg-name').value;
+            const password = document.getElementById('reg-password').value;
+            const errorMsg = document.getElementById('reg-error-msg');
+
+            // Gom tất cả các bias đã được chọn (có class 'selected')
+            const selectedBiases = [];
+            document.querySelectorAll('.bias-chip.selected').forEach(chip => {
+                selectedBiases.push(chip.getAttribute('data-value'));
+            });
+
+            if(mssv === "" || password === "" || name === "") {
+                errorMsg.innerText = "❌ Vui lòng điền đủ thông tin!";
+                return;
+            }
+
+            try {
+                // Gửi data xuống API đăng ký mình vừa viết lúc nãy
+                const response = await fetch('http://localhost:3000/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        mssv: mssv, 
+                        name: name,
+                        password: password,
+                        preferences: selectedBiases // Gửi cục bias này đi
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert("🎉 Đăng ký thành công! Chuyển hướng sang trang đăng nhập nhé.");
+                    window.location.href = "login.html"; // Chuyển về login
+                } else {
+                    errorMsg.innerText = "❌ " + data.message;
+                }
+            } catch (error) {
+                console.error("Lỗi:", error);
+                errorMsg.innerText = "❌ Lỗi server. Nhớ chạy node server.js nha!";
+            }
+        }
+    </script>
+</body>
+</html>

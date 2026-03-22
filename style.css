@@ -1,12 +1,14 @@
+
 /* --- 12. TRANG ĐĂNG NHẬP (LOGIN) --- */
 .login-body {
     background: linear-gradient(135deg, #f0f2f5, #e0e8f5);
-    height: 100vh; /* Chiều cao full màn hình */
+    min-height: 100vh; /* Đổi 'height' thành 'min-height' để nó tự giãn ra nếu form dài */
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    padding: 40px 20px; /* Thêm khoảng cách trên/dưới để cuộn chuột không bị dính mép màn hình */
     margin: 0;
+    box-sizing: border-box;
 }
 
 .login-container {
