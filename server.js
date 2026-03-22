@@ -10,26 +10,40 @@ app.use(express.json());
 // Giả lập Database chứa danh sách người dùng
 let users = [
     {
+        mssv: 'admin', 
+        password: 'admin',
+        name: 'Ban Tổ Chức UIT',
+        role: 'admin' // Gắn mác quyền lực
+    },
+    {
         mssv: '22521234',
         password: 'password123',
         name: 'NGUYEN VAN A',
-        preferences: ['dieu1', 'dieu3'] // Ví dụ bias: Thích học thuật và tình nguyện
+        preferences: ['dieu1', 'dieu3'],
+        role: 'student' // Sinh viên bình thường
     }
 ];
 
-// 1. API Đăng nhập (Cập nhật lại để tìm trong mảng users)
+// 1. API Đăng nhập
 app.post('/api/login', (req, res) => {
     const { mssv, password } = req.body;
 
     const foundUser = users.find(u => u.mssv === mssv && u.password === password);
 
     if (foundUser) {
+        // Đăng nhập đúng thì vào đây
         return res.status(200).json({ 
             success: true, 
             message: 'Đăng nhập thành công',
-            user: { mssv: foundUser.mssv, name: foundUser.name, preferences: foundUser.preferences }
+            user: {
+                mssv: foundUser.mssv,
+                name: foundUser.name,
+                preferences: foundUser.preferences,
+                role: foundUser.role || 'student'
+            }
         });
     } else {
+        // Đăng nhập sai thì rớt xuống đây (Nằm NGOÀI ngoặc nhọn của if nha)
         return res.status(401).json({ success: false, message: 'Sai MSSV hoặc mật khẩu!' });
     }
 });
@@ -65,14 +79,40 @@ app.post('/api/register', (req, res) => {
     });
 });
 // --- MOCK DATA HOẠT ĐỘNG ---
-const mockEvents = [
-    { id: 1, title: "Seminar: Tương lai của AI & Machine Learning", category: "ai_dev", points: 5 },
-    { id: 2, title: "Workshop: Triển khai dự án với Docker & AWS", category: "devops", points: 5 },
-    { id: 3, title: "Talkshow: Ứng dụng Blockchain trong thực tế", category: "blockchain", points: 4 },
-    { id: 4, title: "Giải đấu E-sports UIT: Genshin Impact & Roblox", category: "esports", points: 3 },
-    { id: 5, title: "Chiến dịch Mùa hè xanh 2026", category: "volunteer", points: 10 },
-    { id: 6, title: "Cuộc thi Nhiếp ảnh: Khoảnh khắc sinh viên", category: "photography", points: 4 }
+let mockEvents = [
+    { id: 1, title: "Seminar: Tương lai của AI & Machine Learning", category: "ai_dev", points: 5, time: "20/03/2026" },
+    { id: 2, title: "Workshop: Triển khai dự án với Docker & AWS", category: "devops", points: 5, time: "22/03/2026" },
+    { id: 3, title: "Talkshow: Ứng dụng Blockchain trong thực tế", category: "blockchain", points: 4, time: "25/03/2026" },
+    { id: 4, title: "Giải đấu E-sports UIT: Genshin Impact & Roblox", category: "esports", points: 3, time: "26/03/2026" },
+    { id: 5, title: "Chiến dịch Mùa hè xanh 2026", category: "volunteer", points: 10, time: "01/06/2026" },
+    { id: 6, title: "Cuộc thi Nhiếp ảnh: Khoảnh khắc sinh viên", category: "photography", points: 4, time: "15/04/2026" }
 ];
+// --- API QUẢN LÝ SỰ KIỆN (CỦA ADMIN) ---
+// Lấy tất cả sự kiện
+app.get('/api/events', (req, res) => {
+    res.status(200).json({ success: true, data: mockEvents });
+});
+
+// Admin Thêm sự kiện mới (Create)
+app.post('/api/events', (req, res) => {
+    const { title, category, points, time } = req.body;
+    const newEvent = {
+        id: Date.now(), // Tạo ID ngẫu nhiên
+        title, category, 
+        points: parseInt(points), 
+        time
+    };
+    mockEvents.push(newEvent);
+    res.status(201).json({ success: true, message: 'Đã thêm sự kiện!', data: newEvent });
+});
+
+// Admin Xóa sự kiện (Delete)
+app.delete('/api/events/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    mockEvents = mockEvents.filter(event => event.id !== id);
+    res.status(200).json({ success: true, message: 'Đã xóa sự kiện!' });
+});
+
 
 // --- API THUẬT TOÁN ĐỀ XUẤT ---
 app.get('/api/events/recommend', (req, res) => {
