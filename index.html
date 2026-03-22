@@ -55,10 +55,14 @@
                 <div class="filter-container">
                     <input type="text" id="search-input" placeholder="🔍 Tìm tên sự kiện, câu lạc bộ..." onkeyup="handleFilter()">
                     <div class="filter-chips">
-                        <button class="chip active" onclick="setFilter('all', this)">Tất cả</button>
+                        <button class="chip active" onclick="setFilter('all', this)">Tất cả</button>   
+                        <button class="chip" onclick="fetchRecommendations(this)" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333; border: none; font-weight: 900;">✨ Dành cho bạn</button>
+                        
                         <button class="chip" onclick="setFilter('dieu1', this)">Điều 1</button>
                         <button class="chip" onclick="setFilter('dieu2', this)">Điều 2</button>
                         <button class="chip" onclick="setFilter('dieu3', this)">Điều 3</button>
+
+                                             
                     </div>
                 </div>
                 <div id="events-list"></div>
@@ -271,6 +275,60 @@
                 });
             }
             localStorage.setItem('uit_events', JSON.stringify(mockEvents));
+        }
+
+        // --- GỌI API THUẬT TOÁN ĐỀ XUẤT TỪ BACKEND ---
+        async function fetchRecommendations(btnElement) {
+            // 1. Đổi màu nút để người dùng biết đang chọn tab nào
+            document.querySelectorAll('.chip').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // 2. Lấy MSSV đang đăng nhập từ bộ nhớ máy
+            const mssv = localStorage.getItem('uit_mssv');
+            if (!mssv || mssv === 'Khách') {
+                showToast("⚠️ Vui lòng đăng nhập để xem đề xuất!");
+                return;
+            }
+
+            // 3. Gọi xuống Backend để xin danh sách đã được lọc qua "Bias"
+            try {
+                const response = await fetch(`http://localhost:3000/api/events/recommend?mssv=${mssv}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const container = document.getElementById('events-list');
+                    container.innerHTML = ""; // Xóa danh sách cũ đi
+
+                    // 4. Vẽ lại danh sách sự kiện Backend trả về
+                    data.data.forEach((event, index) => {
+                        // Giả sử 2 sự kiện đầu tiên là do thuật toán bốc trúng sở thích, mình sẽ highlight nó lên
+                        const isTopMatch = index < 2; 
+                        const bgColor = isTopMatch ? '#fff0f5' : '#fafafa';
+                        const borderColor = isTopMatch ? '#ff9a9e' : 'black';
+                        const tagUI = isTopMatch 
+                            ? `<span style="font-size: 9px; color: white; background: #ff4757; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">✨ Trúng sở thích</span>`
+                            : `<span style="font-size: 9px; color: white; background: #6c757d; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">Gợi ý thêm</span>`;
+
+                        container.innerHTML += `
+                            <div class="event-card" style="background-color: ${bgColor}; border-color: ${borderColor};">
+                                <div class="event-icon open"><img src="https://img.icons8.com/parakeet-line/48/star.png" alt="icon"></div>
+                                <div class="event-info">
+                                    <h4>${event.title}</h4>
+                                    <p>🕒 Sắp diễn ra</p>
+                                    ${tagUI}
+                                </div>
+                                <div class="event-action">
+                                    <span class="event-points highlight">+${event.points} ĐRL</span>
+                                    <button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error("Lỗi:", error);
+                showToast("❌ Không kết nối được Backend. Nhớ bật server nha!");
+            }
         }
 
         function renderHistory() {

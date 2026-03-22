@@ -32,21 +32,41 @@
 
     <script>
         // Logic xử lý đăng nhập (Giả lập Frontend)
-        function handleLogin() {
-            const mssv = document.getElementById('mssv').value;
-            const pass = document.getElementById('password').value;
+        // Logic xử lý đăng nhập gọi API Backend
+        async function handleLogin() {
+            const mssvInput = document.getElementById('mssv').value;
+            const passInput = document.getElementById('password').value;
             const errorMsg = document.getElementById('error-msg');
 
-            // Kiểm tra xem có nhập chữ nào chưa
-            if(mssv !== "" && pass !== "") {
-                // Lưu trạng thái vào máy là "Đã đăng nhập"
-                localStorage.setItem('uit_logged_in', 'true');
-                localStorage.setItem('uit_mssv', mssv); // Lưu luôn MSSV để mốt xài
-                
-                // Chuyển hướng bay thẳng sang trang Dashboard
-                window.location.href = "index.html";
-            } else {
+            if(mssvInput === "" || passInput === "") {
                 errorMsg.innerText = "❌ Vui lòng nhập đầy đủ MSSV và Mật khẩu!";
+                return;
+            }
+
+            try {
+                // Gửi request lên Backend
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mssv: mssvInput, password: passInput })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Đăng nhập thành công -> Lưu LocalStorage và chuyển trang
+                    localStorage.setItem('uit_logged_in', 'true');
+                    localStorage.setItem('uit_mssv', data.user.mssv); 
+                    window.location.href = "index.html";
+                } else {
+                    // Sai mật khẩu hoặc lỗi từ Backend
+                    errorMsg.innerText = "❌ " + data.message;
+                }
+            } catch (error) {
+                console.error("Lỗi kết nối server:", error);
+                errorMsg.innerText = "❌ Không thể kết nối đến máy chủ. Hãy đảm bảo Server đang chạy!";
             }
         }
     </script>
