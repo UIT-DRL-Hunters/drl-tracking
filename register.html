@@ -33,12 +33,6 @@
             border-color: #007bff;
             box-shadow: 0 4px 10px rgba(0,123,255,0.3);
         }
-        .login-footer {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 13px;
-        }
-        .login-footer a { color: #007bff; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body class="login-body">
@@ -87,19 +81,30 @@
     </div>
 
     <script>
-        // Hàm xử lý hiệu ứng click chọn Bias
+        // --- 1. THÊM HÀM SHOW TOAST VÀO ĐÂY ---
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="toast-icon">🎉</span>
+                <span class="toast-msg">${message}</span>
+            `;
+            container.appendChild(toast);
+        }
+
+        // --- 2. HÀM XỬ LÝ CLICK BIAS ---
         function toggleBias(element) {
             element.classList.toggle('selected');
         }
 
-        // Logic xử lý gửi data đăng ký xuống Backend
+        // --- 3. HÀM ĐĂNG KÝ (ĐÃ FIX NGOẶC VÀ CATCH) ---
         async function handleRegister() {
             const mssv = document.getElementById('reg-mssv').value;
             const name = document.getElementById('reg-name').value;
             const password = document.getElementById('reg-password').value;
             const errorMsg = document.getElementById('reg-error-msg');
 
-            // Gom tất cả các bias đã được chọn (có class 'selected')
             const selectedBiases = [];
             document.querySelectorAll('.bias-chip.selected').forEach(chip => {
                 selectedBiases.push(chip.getAttribute('data-value'));
@@ -111,7 +116,6 @@
             }
 
             try {
-                // Gửi data xuống API đăng ký mình vừa viết lúc nãy
                 const response = await fetch('http://localhost:3000/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -119,23 +123,30 @@
                         mssv: mssv, 
                         name: name,
                         password: password,
-                        preferences: selectedBiases // Gửi cục bias này đi
+                        preferences: selectedBiases 
                     })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
-                    alert("🎉 Đăng ký thành công! Chuyển hướng sang trang đăng nhập nhé.");
-                    window.location.href = "login.html"; // Chuyển về login
+                    // Hiện Toast siêu mượt
+                    showToast("Đăng ký thành công! Đang chuyển hướng...");
+                    
+                    // Đợi 2 giây rồi nhảy qua login
+                    setTimeout(() => {
+                        window.location.href = "login.html";
+                    }, 2000); 
                 } else {
                     errorMsg.innerText = "❌ " + data.message;
                 }
             } catch (error) {
+                
                 console.error("Lỗi:", error);
-                errorMsg.innerText = "❌ Lỗi server. Nhớ chạy node server.js nha!";
+                errorMsg.innerText = "❌ Lỗi kết nối đến Server!";
             }
-        }
+        } 
     </script>
+    <div id="toast-container"></div>
 </body>
 </html>
