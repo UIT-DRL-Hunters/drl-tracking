@@ -216,15 +216,40 @@
         }
 
         // --- 2. DỮ LIỆU & LOCALSTORAGE ---
-        let mockEvents = JSON.parse(localStorage.getItem('uit_events')) || [
-            { id: 1, title: "HỘI THẢO AI IN HEALTHCARE", time: "🕒 14:00, 20/03/2026", points: 3, type: "registered", category: "dieu1", icon: "https://img.icons8.com/parakeet-line/48/clock.png" },
-            { id: 2, title: "CHẠY BỘ TÌNH NGUYỆN KHOA CNPM", time: "🕒 07:00, 22/03/2026", points: 5, type: "open", category: "dieu3", icon: "https://img.icons8.com/parakeet-line/48/fire-element.png" },
-            { id: 3, title: "WORKSHOP: LÀM CHỦ GITHUB", time: "🕒 08:00, 25/03/2026", points: 5, type: "open", category: "dieu2", icon: "https://img.icons8.com/parakeet-line/48/code.png" },
-            { id: 4, title: "NGÀY HỘI VIỆC LÀM UIT 2026", time: "🕒 08:00, 10/04/2026", points: 10, type: "open", category: "dieu1", icon: "https://img.icons8.com/parakeet-line/48/briefcase.png" }
-        ];
-
+        // --- 2. DỮ LIỆU TỪ SERVER ---
+        let mockEvents = []; // Khởi tạo mảng rỗng chờ rót data
         let currentEventId = null;
         let currentFilter = 'all';
+
+        // Hàm gọi API lấy sự kiện từ Backend
+        async function loadEventsFromServer() {
+            try {
+                const response = await fetch('http://localhost:3000/api/events');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Gắn thêm icon sinh động tùy theo mảng hoạt động
+                    mockEvents = data.data.map(ev => {
+                        let iconUrl = "https://img.icons8.com/parakeet-line/48/event.png"; // Mặc định
+                        if(ev.category === 'ai_dev') iconUrl = "https://img.icons8.com/parakeet-line/48/bot.png";
+                        if(ev.category === 'devops' || ev.category === 'blockchain') iconUrl = "https://img.icons8.com/parakeet-line/48/code.png";
+                        if(ev.category === 'esports') iconUrl = "https://img.icons8.com/parakeet-line/48/controller.png";
+                        if(ev.category === 'volunteer') iconUrl = "https://img.icons8.com/parakeet-line/48/fire-element.png";
+                        
+                        // Ghép data từ server với các trường cần cho UI (type: open)
+                        return { ...ev, type: "open", icon: iconUrl }; 
+                    });
+
+                    // Có data rồi thì gọi hàm vẽ lên màn hình
+                    handleFilter(); 
+                    updateScore();
+                }
+            } catch (error) {
+                console.error("Lỗi lấy sự kiện:", error);
+                showToast("❌ Không kết nối được Server. Nhớ bật backend nha!");
+            }
+        }
+
 
         // --- 3. RENDER VÀ FILTER GIAO DIỆN ---
         function setFilter(category, btnElement) {
@@ -396,7 +421,6 @@
             window.location.href = "login.html";
         }
 
-        // --- KHỞI CHẠY LẦN ĐẦU ---
         // --- 7. LOGIC TRANG CÁ NHÂN & QR CODE ĐỘNG ---
         function loadUserProfile() {
             // Lấy MSSV từ localStorage mà trang login.html đã lưu
@@ -451,10 +475,9 @@
                 document.body.classList.add('dark-mode');
             }
         }
-        // --- KHỞI CHẠY LẦN ĐẦU (Gom hết xuống cuối cùng) ---
-        handleFilter(); 
-        updateScore();
+        // --- KHỞI CHẠY LẦN ĐẦU ---
         loadUserProfile();
+        loadEventsFromServer(); // Chạy hàm xịn xò mình vừa viết
     </script>
     <div id="toast-container"></div>
 </body>
