@@ -49,6 +49,11 @@
                 </div>
             </div>
 
+            <div class="events-section" id="reminder-section" style="display: none; border-color: #ffc107; background-color: #fffdf2;">
+                <h3 style="color: #d9534f;">⏰ SỰ KIỆN SẮP DIỄN RA</h3>
+                <div id="reminder-list"></div>
+            </div>
+
             <div class="events-section">
                 <h3>SỰ KIỆN GỢI Ý CHO BẠN</h3>
                 
@@ -300,6 +305,8 @@
                 });
             }
             localStorage.setItem('uit_events', JSON.stringify(mockEvents));
+
+            renderReminders();
         }
 
         // --- GỌI API THUẬT TOÁN ĐỀ XUẤT TỪ BACKEND ---
@@ -463,7 +470,70 @@
             }
         }
 
-        // --- 9. LOGIC BẬT/TẮT DARK MODE ---
+
+        // --- TÍNH NĂNG 1: HIỂN THỊ LÊN UI NHẮC NHỞ ---
+        function renderReminders() {
+            const reminderSection = document.getElementById('reminder-section');
+            const reminderList = document.getElementById('reminder-list');
+            if (!reminderSection || !reminderList) return;
+
+            // Tìm những sự kiện user đã đăng ký
+            const registeredEvents = mockEvents.filter(ev => ev.type === "registered");
+            
+            // Nếu chưa đăng ký cái nào thì giấu cái khung nhắc lịch đi
+            if (registeredEvents.length === 0) {
+                reminderSection.style.display = 'none';
+                return;
+            }
+
+            // Nếu có sự kiện thì hiện lên và vẽ lại danh sách
+            reminderSection.style.display = 'block';
+            reminderList.innerHTML = '';
+
+            // Duyệt qua các sự kiện đã đăng ký và tạo thẻ Reminder
+            registeredEvents.forEach(ev => {
+                reminderList.innerHTML += `
+                    <div class="event-card" style="border-left: 5px solid #ffc107; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+                        <div class="event-icon"><img src="https://img.icons8.com/color/48/ringing-bell.png" alt="bell"></div>
+                        <div class="event-info">
+                            <h4 style="color: #d32f2f;">${ev.title}</h4>
+                            <p style="font-weight: bold; color: #555;">🕒 ${ev.time}</p>
+                            <p style="font-size: 11px; color: #777;">📍 Địa điểm: Đợi thông báo từ BTC</p>
+                        </div>
+                        <div class="event-action">
+                             <button class="btn-action open" style="background: #4285F4; border-color: #4285F4; display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 6px 10px;" onclick="addToCalendar('${ev.title}', '${ev.time}')">
+                                📅 LƯU LỊCH
+                             </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- TÍNH NĂNG 9: TẠO LINK GOOGLE CALENDAR ---
+        function addToCalendar(title, dateStr) {
+            // Chuyển đổi chuỗi ngày DD/MM/YYYY thành định dạng YYYYMMDD cho Google
+            const parts = dateStr.split('/');
+            if(parts.length === 3) {
+                // Ví dụ: 20/03/2026 -> 20260320
+                const formattedDate = `${parts[2]}${parts[1]}${parts[0]}`;
+                
+                // Mã hóa các ký tự đặc biệt (khoảng trắng, dấu tiếng Việt) thành URL
+                const eventTitle = encodeURIComponent("[UIT ĐRL] " + title);
+                const eventDetails = encodeURIComponent("Nhắc nhở tham gia sự kiện điểm danh lấy ĐRL. Đừng quên quét mã QR nhé!");
+                const location = encodeURIComponent("Trường ĐH CNTT (UIT)");
+
+                // Ép thành link Google Calendar xịn xò
+                const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${formattedDate}/${formattedDate}&details=${eventDetails}&location=${location}`;
+                
+                // Mở Google Calendar sang một tab mới
+                window.open(gCalUrl, '_blank');
+            } else {
+                showToast("⚠️ Ngày tháng không hợp lệ để lưu lịch!");
+            }
+        }
+
+        // --- 10. LOGIC BẬT/TẮT DARK MODE ---
         function toggleTheme() {
             const body = document.body;
             body.classList.toggle('dark-mode');
