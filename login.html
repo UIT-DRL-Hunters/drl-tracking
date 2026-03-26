@@ -35,7 +35,6 @@
     </div>
 
     <script>
-        // Logic xử lý đăng nhập (Giả lập Frontend)
         // Logic xử lý đăng nhập gọi API Backend
         async function handleLogin() {
             const mssvInput = document.getElementById('mssv').value;
@@ -60,19 +59,23 @@
                 const data = await response.json();
 
                 if (data.success) {
-            // Lưu trạng thái
-            localStorage.setItem('uit_logged_in', 'true');
-            localStorage.setItem('uit_mssv', data.user.mssv); 
-            localStorage.setItem('uit_role', data.user.role); 
+                    // Lưu trạng thái
+                    localStorage.setItem('uit_logged_in', 'true');
+                    localStorage.setItem('uit_mssv', data.user.mssv); 
+                    localStorage.setItem('uit_role', data.user.role); 
+                    localStorage.setItem('uit_name', data.user.name);
 
-            // CHIA LUỒNG TẠI ĐÂY
-            if (data.user.role === 'admin') {
-                window.location.href = "admin.html"; // Admin thì vào kho tổng
-            } else {
-                window.location.href = "index.html"; // Sinh viên thì vào app
-            }
-        }
-        
+                    // CHIA LUỒNG TẠI ĐÂY
+                    if (data.user.role === 'admin') {
+                        window.location.href = "admin.html"; // Admin thì vào kho tổng
+                    } else {
+                        window.location.href = "index.html"; // Sinh viên thì vào app
+                    }
+                } else {
+                    // ĐĂNG NHẬP THẤT BẠI: Báo lỗi ra màn hình
+                    errorMsg.innerText = "❌ " + data.message;
+                }
+
             } catch (error) {
                 console.error("Lỗi kết nối server:", error);
                 errorMsg.innerText = "❌ Không thể kết nối đến máy chủ. Hãy đảm bảo Server đang chạy!";

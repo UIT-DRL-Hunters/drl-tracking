@@ -423,16 +423,22 @@
 
         // --- 7. LOGIC TRANG CÁ NHÂN & QR CODE ĐỘNG ---
         function loadUserProfile() {
-            // Lấy MSSV từ localStorage mà trang login.html đã lưu
+            // Lấy MSSV và Tên từ bộ nhớ máy
             const mssv = localStorage.getItem('uit_mssv') || 'Khách';
+            const name = localStorage.getItem('uit_name') || 'SINH VIÊN UIT';
 
-            // Hiển thị MSSV lên giao diện
+            // Cập nhật ở Trang 3 (Cá nhân)
             const mssvDisplay = document.getElementById('profile-mssv-display');
-            if (mssvDisplay && mssv !== 'Khách') {
-                mssvDisplay.innerText = `MSSV: ${mssv}`;
-            }
+            if (mssvDisplay && mssv !== 'Khách') mssvDisplay.innerText = `MSSV: ${mssv}`;
+            
+            const nameDisplay = document.querySelector('.profile-name');
+            if (nameDisplay) nameDisplay.innerText = name;
 
-            // Tạo QR code lần đầu tiên (Truyền false để KHÔNG hiện thông báo lúc vừa load trang)
+            // Cập nhật ở Trang Chủ (Page 0)
+            const mainProfileName = document.querySelector('.profile-info h2');
+            if (mainProfileName) mainProfileName.innerText = `${name} (${mssv})`;
+
+            // Tạo QR code
             refreshQRCode(false); 
         }
 
@@ -456,7 +462,7 @@
                 }
             }
         }
-        // --- 9. LOGIC BẬT/TẮT DARK MODE ---
+
         // --- 9. LOGIC BẬT/TẮT DARK MODE ---
         function toggleTheme() {
             const body = document.body;
