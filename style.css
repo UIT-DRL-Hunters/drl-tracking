@@ -436,11 +436,11 @@ h2, h3, h4, p, span, .circle, .circle::before {
     transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
 }
 body.dark-mode {
-    background-color: #121212;
-    color: #e0e0e0;
+    background-color: #1a1a1a !important; /* Xám than nhẹ dịu cho mắt */
+    color: #f5f5f5;
 }
 
-/* Đổi màu các thẻ (Card) */
+/* Đổi màu các thẻ (Card) sang xám đá tạo độ nổi */
 body.dark-mode .profile-card, 
 body.dark-mode .progress-section, 
 body.dark-mode .details-section, 
@@ -449,36 +449,78 @@ body.dark-mode .history-section,
 body.dark-mode .qr-section,
 body.dark-mode .popup-box,
 body.dark-mode .login-container {
-    background-color: #1e1e1e;
-    border-color: #333;
+    background-color: #2d2d2d !important;
+    border-color: #3d3d3d;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
 /* Đổi màu thanh điều hướng & Sidebar */
-body.dark-mode .sidebar { background-color: #1e1e1e; border-right-color: #333; }
-body.dark-mode .bottom-nav { background-color: #1e1e1e; border-top-color: #333; }
+body.dark-mode .sidebar { background-color: #2d2d2d; border-right-color: #3d3d3d; }
+body.dark-mode .bottom-nav { background-color: #2d2d2d; border-top-color: #3d3d3d; }
 body.dark-mode .sidebar-item { color: #aaa; }
-body.dark-mode .sidebar-item:hover { background-color: #2a2a2a; }
+body.dark-mode .sidebar-item:hover { background-color: #3d3d3d; }
 body.dark-mode .sidebar-item.active { background-color: #2a3b4c; }
 
 /* Xử lý text và các tiểu tiết */
-body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode p { color: #e0e0e0; }
+body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode p { color: #f5f5f5; }
 body.dark-mode .profile-info h2 { color: #fff; }
 body.dark-mode .qr-desc { color: #aaa; }
 
-/* Xử lý màu vòng tròn điểm */
-body.dark-mode .circle { border-color: #333; }
-body.dark-mode .circle::before { background-color: #1e1e1e; }
-body.dark-mode .circle span { color: #fff; }
-
 /* Xử lý thẻ sự kiện và nút tìm kiếm */
-body.dark-mode .event-card { background-color: #2a2a2a; border-color: #444; }
-body.dark-mode .event-card:hover { background-color: #333; border-color: #007bff; }
-body.dark-mode .chip { background: #2a2a2a; color: #aaa; border-color: #444; }
-body.dark-mode .chip:hover { background: #333; }
+body.dark-mode .event-card { background-color: #2d2d2d !important; border-color: #444; }
+body.dark-mode .event-card:hover { background-color: #3d3d3d !important; border-color: #007bff; }
+body.dark-mode .chip { background: #444; color: #fff; border-color: #555; }
+body.dark-mode .chip:hover { background: #555; }
 body.dark-mode .chip.active { background: #007bff; color: white; border-color: #007bff; }
-body.dark-mode #search-input { background: #2a2a2a; color: white; border-color: #444; }
+body.dark-mode #search-input { background: #3d3d3d; color: white; border-color: #555; }
 
-/* Đổi màu chính cái nút công tắc */
-body.dark-mode .theme-toggle { background: #333; border-color: #555; }
-body.dark-mode .qr-box { background-color: #2a2a2a; border-color: #555; }
+/* Đổi màu chính cái nút công tắc và QR box */
+body.dark-mode .theme-toggle { background: #3d3d3d; border-color: #555; }
+body.dark-mode .qr-box { background-color: #3d3d3d; border-color: #555; }
+
+/* ==========================================================
+   ====== CÁC ĐIỂM FIX ĐỘ TƯƠNG PHẢN CHÍNH ====== 
+========================================================== */
+
+/* 1. Fix nút Đăng ký nổi bần bật (High Contrast) */
+body.dark-mode .btn-action.open {
+    background-color: #007bff !important; /* Xanh dương đậm sắc nét */
+    color: white !important; /* Chữ trắng bold */
+    border-color: #007bff !important;
+    box-shadow: 0 4px 10px rgba(0,123,255,0.3) !important;
+}
+body.dark-mode .btn-action.open:hover {
+    background-color: #0056b3 !important;
+}
+
+/* 2. Fix nền bên trong Vòng tròn điểm */
+body.dark-mode .circle::before { 
+    background-color: #2d2d2d !important; /* Trùng với màu nền của Card */
+}
+body.dark-mode .circle { border-color: #444; }
+
+/* 3. Fix màu chữ bị lóa: Chữ bên trong vòng tròn & Tag Điều 1, 2... */
+body.dark-mode .circle span,
+body.dark-mode .event-info span {
+    color: #ffffff !important; /* Ép buộc chữ phải màu trắng sắc nét */
+}
+
+/* Làm cho cái Tag Điều 1, Điều 2 đậm màu lên xíu cho dễ đọc chữ trắng */
+body.dark-mode .event-info span[style*="background: #6c757d"] {
+    background-color: #555 !important; 
+}
+
+/* 4. Fix thẻ "✨ Dành cho bạn" (Màu hồng sáng bị chói trong Dark Mode) */
+body.dark-mode .event-card[style*="background-color: #fff0f5"] {
+    background-color: #3a2a2f !important; /* Nền tối ánh đỏ mận */
+    border-color: #ff4757 !important;
+}
+/* ==========================================================
+   --- FIX HIỆU ỨNG "GIẬT LAYOUT" KHI BẤM NÚT LỌC ---
+========================================================== */
+
+/* 1. Giữ cho khung danh sách có một độ cao tối thiểu, không bị xẹp lép khi có ít sự kiện */
+#events-list {
+    min-height: 350px; 
+}
+
