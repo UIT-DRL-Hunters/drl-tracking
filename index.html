@@ -61,8 +61,8 @@
                         <button class="chip" onclick="setFilter('dieu1', this)">Điều 1</button>
                         <button class="chip" onclick="setFilter('dieu2', this)">Điều 2</button>
                         <button class="chip" onclick="setFilter('dieu3', this)">Điều 3</button>
-
-                                             
+                        <button class="chip" onclick="setFilter('dieu4', this)">Điều 4</button>
+                        <button class="chip" onclick="setFilter('dieu5', this)">Điều 5</button>
                     </div>
                 </div>
                 <div id="events-list"></div>
@@ -153,9 +153,12 @@
 
             mockEvents.forEach(event => {
                 if (event.type === "registered") {
-                    totalEarned += event.points; // Cộng vào tổng
-                    if (event.category && earnedByCategory[event.category] !== undefined) {
-                        earnedByCategory[event.category] += event.points; // Cộng vào Điều tương ứng
+                    totalEarned += event.points; 
+                    
+                    // Dùng TỪ ĐIỂN để chỉ định cộng điểm vào đúng vòng tròn Điều mấy
+                    const dieuKey = categoryToDieu[event.category] || event.category;
+                    if (dieuKey && earnedByCategory[dieuKey] !== undefined) {
+                        earnedByCategory[dieuKey] += event.points; 
                     }
                 }
             });
@@ -220,6 +223,16 @@
         let mockEvents = []; // Khởi tạo mảng rỗng chờ rót data
         let currentEventId = null;
         let currentFilter = 'all';
+        // --- BỘ TỪ ĐIỂN QUY ĐỔI CATEGORY SANG ĐIỀU RÈN LUYỆN ---
+        const categoryToDieu = {
+            'ai_dev': 'dieu1',      // Học thuật -> Điều 1
+            'devops': 'dieu1',      // Học thuật -> Điều 1
+            'blockchain': 'dieu1',  // Học thuật -> Điều 1
+            'photography': 'dieu2', // Kỹ năng -> Điều 2
+            'esports': 'dieu3',     // Thể thao/Giải trí -> Điều 3
+            'volunteer': 'dieu4',   // Tình nguyện xã hội -> Điều 4
+            'dieu1': 'dieu1', 'dieu2': 'dieu2', 'dieu3': 'dieu3', 'dieu4': 'dieu4', 'dieu5': 'dieu5'
+        };
 
         // Hàm gọi API lấy sự kiện từ Backend
         async function loadEventsFromServer() {
@@ -269,7 +282,10 @@
 
             const filteredEvents = mockEvents.filter(event => {
                 const matchText = event.title.toLowerCase().includes(searchText);
-                const matchCategory = (currentFilter === 'all') || (event.category === currentFilter);
+                // Dùng TỪ ĐIỂN để quy đổi mã Backend sang mã Điều
+                const dieuKey = categoryToDieu[event.category] || event.category;
+                const matchCategory = (currentFilter === 'all') || (dieuKey === currentFilter);
+                
                 return matchText && matchCategory;
             });
 
@@ -281,7 +297,10 @@
                         ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
                         : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
                     
-                    let catName = event.category === 'dieu1' ? 'Điều 1' : (event.category === 'dieu2' ? 'Điều 2' : 'Điều 3');
+                    // Lấy đúng tên Điều từ TỪ ĐIỂN để hiển thị lên Tag
+                    const dieuKey = categoryToDieu[event.category] || event.category;
+                    const dieuNames = { dieu1: 'Điều 1', dieu2: 'Điều 2', dieu3: 'Điều 3', dieu4: 'Điều 4', dieu5: 'Điều 5' };
+                    let catName = dieuNames[dieuKey] || 'Sự kiện';
 
                     container.innerHTML += `
                         <div class="event-card">
@@ -325,8 +344,8 @@
                     container.innerHTML = ""; // Xóa danh sách cũ đi
 
                     // 4. Vẽ lại danh sách sự kiện Backend trả về
+                    // 4. Vẽ lại danh sách sự kiện Backend trả về (ĐÃ FIX ĐỒNG BỘ TRẠNG THÁI)
                     data.data.forEach((event, index) => {
-                        // Giả sử 2 sự kiện đầu tiên là do thuật toán bốc trúng sở thích, mình sẽ highlight nó lên
                         const isTopMatch = index < 2; 
                         const bgColor = isTopMatch ? '#fff0f5' : '#fafafa';
                         const borderColor = isTopMatch ? '#ff9a9e' : 'black';
@@ -334,17 +353,26 @@
                             ? `<span style="font-size: 9px; color: white; background: #ff4757; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">✨ Trúng sở thích</span>`
                             : `<span style="font-size: 9px; color: white; background: #6c757d; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">Gợi ý thêm</span>`;
 
+                        // BÍ QUYẾT LÀ ĐÂY: Tìm xem event này ở mảng mockEvents cục bộ đã bị đổi type thành "registered" chưa
+                        const localEvent = mockEvents.find(e => e.id === event.id);
+                        const isRegistered = localEvent && localEvent.type === "registered";
+
+                        // Dựa vào trạng thái isRegistered để quyết định vẽ nút nào
+                        let buttonHTML = isRegistered 
+                            ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
+                            : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
+
                         container.innerHTML += `
                             <div class="event-card" style="background-color: ${bgColor}; border-color: ${borderColor};">
-                                <div class="event-icon open"><img src="https://img.icons8.com/parakeet-line/48/star.png" alt="icon"></div>
+                                <div class="event-icon ${isRegistered ? 'registered' : 'open'}"><img src="https://img.icons8.com/parakeet-line/48/star.png" alt="icon"></div>
                                 <div class="event-info">
                                     <h4>${event.title}</h4>
                                     <p>🕒 Sắp diễn ra</p>
                                     ${tagUI}
                                 </div>
                                 <div class="event-action">
-                                    <span class="event-points highlight">+${event.points} ĐRL</span>
-                                    <button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>
+                                    <span class="event-points ${!isRegistered ? 'highlight' : ''}">+${event.points} ĐRL</span>
+                                    ${buttonHTML}
                                 </div>
                             </div>
                         `;
