@@ -79,6 +79,7 @@ app.post('/api/register', (req, res) => {
     });
 });
 // --- MOCK DATA HOẠT ĐỘNG ---
+// --- MOCK DATA HOẠT ĐỘNG (ĐÃ ĐỒNG BỘ CHUẨN 5 ĐIỀU) ---
 let mockEvents = [
     { id: 1, title: "Seminar: Tương lai của AI & Machine Learning", category: "dieu1", points: 5, time: "20/03/2026", link: "https://sample.com"},
     { id: 2, title: "Workshop: Triển khai dự án với Docker & AWS", category: "dieu1", points: 5, time: "22/03/2026", link: "https://sample.com" },
