@@ -242,51 +242,48 @@
         // Hàm gọi API lấy sự kiện từ Backend
         async function loadEventsFromServer() {
             try {
+                // 1. Lấy danh sách toàn bộ sự kiện
                 const response = await fetch('http://localhost:3000/api/events');
                 const data = await response.json();
                 
-                if (data.success) {
-                    // Gắn thêm icon sinh động tùy theo mảng hoạt động
-                    // Gắn thêm icon sinh động CHUẨN 5 ĐIỀU
-                    mockEvents = data.data.map(ev => {
-                        // Gọi từ điển để dịch category hiện tại sang đúng Điều mấy
-                        const dieuKey = categoryToDieu[ev.category] || ev.category;
-                        let iconUrl = "https://img.icons8.com/parakeet-line/48/event.png"; // Mặc định
+                // 2. Lấy danh sách ID MÀ SINH VIÊN ĐÃ ĐĂNG KÝ TỪ DATABASE
+                const mssv = localStorage.getItem('uit_mssv');
+                let registeredIds = [];
+                if (mssv && mssv !== 'Khách') {
+                    const regRes = await fetch(`http://localhost:3000/api/users/${mssv}/registered`);
+                    const regData = await regRes.json();
+                    if (regData.success) registeredIds = regData.data;
+                }
 
-                        // Gắn icon dựa trên 5 Điều
+                if (data.success) {
+                    mockEvents = data.data.map(ev => {
+                        const dieuKey = categoryToDieu[ev.category] || ev.category;
+                        let iconUrl = "https://img.icons8.com/parakeet-line/48/event.png"; 
+
                         switch (dieuKey) {
-                            case 'dieu1': // Học tập & NCKH
-                                iconUrl = "https://img.icons8.com/parakeet-line/48/book.png"; 
-                                break;
-                            case 'dieu2': // Nội quy, quy chế
-                                iconUrl = "https://img.icons8.com/parakeet-line/48/shield.png"; // Cái khiên kỷ luật
-                                break;
-                            case 'dieu3': // VH, VN, TDTT
-                                iconUrl = "https://img.icons8.com/parakeet-line/48/crowd.png"; // Thể thao giải trí
-                                break;
-                            case 'dieu4': // Cộng đồng
-                                iconUrl = "https://img.icons8.com/parakeet-line/48/handshake.png"; // Kết nối cộng đồng
-                                break;
-                            case 'dieu5': // Điểm cộng, thành tích
-                                iconUrl = "https://img.icons8.com/parakeet-line/48/trophy.png"; // Cúp vàng
-                                break;
+                            case 'dieu1': iconUrl = "https://img.icons8.com/parakeet-line/48/book.png"; break;
+                            case 'dieu2': iconUrl = "https://img.icons8.com/parakeet-line/48/shield.png"; break;
+                            case 'dieu3': iconUrl = "https://img.icons8.com/parakeet-line/48/crowd.png"; break;
+                            case 'dieu4': iconUrl = "https://img.icons8.com/parakeet-line/48/handshake.png"; break;
+                            case 'dieu5': iconUrl = "https://img.icons8.com/parakeet-line/48/trophy.png"; break;
                         }
                         
-                        // Vẫn giữ một vài icon "đặc sản" nếu thích sự cá nhân hóa (AI, code, game)
                         if(ev.category === 'ai_dev') iconUrl = "https://img.icons8.com/parakeet-line/48/bot.png";
                         if(ev.category === 'devops' || ev.category === 'blockchain') iconUrl = "https://img.icons8.com/parakeet-line/48/code.png";
                         if(ev.category === 'esports') iconUrl = "https://img.icons8.com/parakeet-line/48/controller.png";
 
-                        return { ...ev, type: "open", icon: iconUrl }; 
+                        // 3. SO SÁNH: Nếu ID sự kiện nằm trong mảng Database -> Đổi trạng thái thành "registered"
+                        const isRegistered = registeredIds.includes(ev.id);
+
+                        return { ...ev, type: isRegistered ? "registered" : "open", icon: iconUrl }; 
                     });
 
-                    // Có data rồi thì gọi hàm vẽ lên màn hình
                     handleFilter(); 
                     updateScore();
                 }
             } catch (error) {
                 console.error("Lỗi lấy sự kiện:", error);
-                showToast("❌ Không kết nối được Server. Nhớ bật backend nha!");
+                showToast("❌Không kết nối được máy chủ!");
             }
         }
 
@@ -348,7 +345,7 @@
                             <div class="event-action" style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
                                 <span class="event-points ${event.type === 'open' ? 'highlight' : ''}">+${event.points} ĐRL</span>
                                 <div style="display: flex; gap: 5px;">
-                                    <a href="${event.link || '#'}" target="_blank" class="btn-action" style="background: #f8f9fa; color: #333; text-decoration: none; padding: 5px 10px; display: inline-flex; align-items: center;">CHI TIẾT</a>
+                                    <a href="${event.link || 'https://example.com'}" target="_blank" class="btn-action" style="background: #f8f9fa; color: #333; text-decoration: none; padding: 5px 10px; display: inline-flex; align-items: center;">CHI TIẾT</a>
                                     ${buttonHTML}
                                 </div>
                             </div>
@@ -410,10 +407,13 @@
                                     <p>🕒 Sắp diễn ra</p>
                                     ${tagUI}
                                 </div>
-                                <div class="event-action">
+                                <div class="event-action" style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
                                     <span class="event-points ${!isRegistered ? 'highlight' : ''}">+${event.points} ĐRL</span>
-                                    ${buttonHTML}
+                                    <div style="display: flex; gap: 5px;">
+                                        <a href="${event.link || 'https://example.com'}" target="_blank" class="btn-action" style="background: #f8f9fa; color: #333; text-decoration: none; padding: 5px 10px; display: inline-flex; align-items: center;">CHI TIẾT</a>
+                                        ${buttonHTML}
                                 </div>
+</div>
                             </div>
                         `;
                     });
@@ -474,14 +474,41 @@
             setTimeout(() => { toast.remove(); }, 3000);
         }
 
-        function confirmRegister() {
-            const ev = mockEvents.find(e => e.id === currentEventId);
-            if (ev) ev.type = "registered";
-            
-            closePopup();
-            handleFilter(); // <--- CHỖ NÀY ĐÃ SỬA THÀNH handleFilter()
-            updateScore();
-            showToast(`Đã đăng ký thành công: ${ev.title}`);
+        async function confirmRegister() {
+            const mssv = localStorage.getItem('uit_mssv');
+            if (!mssv || mssv === 'Khách') {
+                showToast("⚠️ Vui lòng đăng nhập để đăng ký!");
+                closePopup();
+                return;
+            }
+
+            try {
+                // 1. Gọi API "Đổ bê tông" vào MongoDB
+                const response = await fetch('http://localhost:3000/api/events/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mssv: mssv, eventId: currentEventId })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    // 2. Database báo lưu OK thì mới đổi màu nút trên Web
+                    const ev = mockEvents.find(e => e.id === currentEventId);
+                    if (ev) ev.type = "registered";
+                    
+                    closePopup();
+                    handleFilter(); 
+                    updateScore();
+                    showToast(`✅ Đã đăng ký thành công: ${ev.title}`);
+                } else {
+                    showToast(`❌ ${data.message}`);
+                    closePopup();
+                }
+            } catch (error) {
+                console.error("Lỗi:", error);
+                showToast("❌ Lỗi kết nối Server!");
+                closePopup();
+            }
         }
         
         function handleLogout() {

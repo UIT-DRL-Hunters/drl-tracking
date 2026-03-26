@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khách - UIT ĐRL Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Tinh chỉnh lại container cho gọn vì không có Sidebar */
+        .guest-container {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            padding-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
+        <span class="icon-moon">🌙</span>
+        <span class="icon-sun">☀️</span>
+    </button>
+
+    <div class="guest-container">
+        
+        <div class="profile-card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center;">
+                <img src="https://img.icons8.com/color/48/guest-male.png" alt="Guest Avatar" class="avatar" style="border-color: #6c757d;">
+                <div class="profile-info">
+                    <h2 style="color: #555;">KHÁCH TRUY CẬP</h2>
+                    <span class="level-badge" style="background: #6c757d;">Chưa đăng nhập</span>
+                </div>
+            </div>
+            <button class="btn-action open" style="padding: 10px 15px; font-size: 12px;" onclick="window.location.href='login.html'">ĐĂNG NHẬP NGAY</button>
+        </div>
+
+        <div class="progress-section" style="text-align: center; background: linear-gradient(135deg, #e6f2ff, #ffffff);">
+            <h3 style="color: #007bff; font-size: 16px;">🚀 Săn điểm Rèn luyện chưa bao giờ dễ đến thế!</h3>
+            <p style="font-size: 13px; color: #555;">Đăng nhập để theo dõi tiến độ, quét mã QR và nhận gợi ý sự kiện dành riêng cho bạn.</p>
+        </div>
+
+        <div class="events-section">
+            <h3>🔥 CÁC SỰ KIỆN ĐANG MỞ ĐĂNG KÝ</h3>
+            <div id="guest-events-list">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Từ điển quy đổi mã category sang Điều
+        const categoryToDieu = {
+            'ai_dev': 'dieu1', 'devops': 'dieu1', 'blockchain': 'dieu1',
+            'photography': 'dieu2', 'esports': 'dieu3', 'volunteer': 'dieu4',
+            'dieu1': 'dieu1', 'dieu2': 'dieu2', 'dieu3': 'dieu3', 'dieu4': 'dieu4', 'dieu5': 'dieu5'
+        };
+
+        // Hàm lấy dữ liệu sự kiện từ Backend
+        async function loadEventsForGuest() {
+            try {
+                const response = await fetch('http://localhost:3000/api/events');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('guest-events-list');
+                    container.innerHTML = "";
+
+                    data.data.forEach(event => {
+                        const dieuKey = categoryToDieu[event.category] || event.category;
+                        let iconUrl = "https://img.icons8.com/parakeet-line/48/event.png"; 
+
+                        // Gắn icon
+                        switch (dieuKey) {
+                            case 'dieu1': iconUrl = "https://img.icons8.com/parakeet-line/48/book.png"; break;
+                            case 'dieu2': iconUrl = "https://img.icons8.com/parakeet-line/48/shield.png"; break;
+                            case 'dieu3': iconUrl = "https://img.icons8.com/parakeet-line/48/crowd.png"; break;
+                            case 'dieu4': iconUrl = "https://img.icons8.com/parakeet-line/48/handshake.png"; break;
+                            case 'dieu5': iconUrl = "https://img.icons8.com/parakeet-line/48/trophy.png"; break;
+                        }
+                        
+                        // Gắn tên Điều
+                        const dieuNames = { dieu1: 'Học tập & NCKH', dieu2: 'Nội quy & Kỷ luật', dieu3: 'VH-VN-TDTT', dieu4: 'HĐ Cộng đồng', dieu5: 'Khen thưởng' };
+                        let catName = dieuNames[dieuKey] || 'Sự kiện';
+
+                        // Đổ HTML (Gắn hàm requireLogin vào nút Đăng ký)
+                        container.innerHTML += `
+                            <div class="event-card">
+                                <div class="event-icon open"><img src="${iconUrl}" alt="icon"></div>
+                                <div class="event-info">
+                                    <h4>${event.title}</h4>
+                                    <p>${event.time}</p>
+                                    <span style="font-size: 9px; color: white; background: #6c757d; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">${catName}</span>
+                                </div>
+                                <div class="event-action" style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                                    <span class="event-points highlight">+${event.points} ĐRL</span>
+                                    <div style="display: flex; gap: 5px;">
+                                        <a href="${event.link || 'https://example.com'}" target="_blank" class="btn-action" style="background: #f8f9fa; color: #333; text-decoration: none; padding: 5px 10px; display: inline-flex; align-items: center;">CHI TIẾT</a>
+                                        <button class="btn-action open" onclick="requireLogin()">ĐĂNG KÝ</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error("Lỗi:", error);
+                document.getElementById('guest-events-list').innerHTML = "<p style='text-align:center; color: red;'>Lỗi kết nối máy chủ!</p>";
+            }
+        }
+
+        // --- PHÉP THUẬT NẰM Ở ĐÂY ---
+        // --- HÀM TẠO TOAST SIÊU MƯỢT ---
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="toast-icon">⚠️</span>
+                <span class="toast-msg">${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            // Tự động xóa sau 3 giây
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        // --- HÀM XỬ LÝ KHI BẤM ĐĂNG KÝ ---
+        function requireLogin() {
+            // Hiện Toast lên trước
+            showToast("Bạn phải đăng nhập mới đăng ký sự kiện được!");
+            
+            // Hẹn giờ 2 giây sau (2000ms) mới đá sang trang đăng nhập
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 2000);
+        }
+
+        // Logic Dark Mode (Tái sử dụng)
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('uit_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('uit_theme') === 'dark') document.body.classList.add('dark-mode');
+
+        // Chạy ngay khi mở web
+        loadEventsForGuest();
+    </script>
+    <div id="toast-container"></div>
+</body>
+</html>
