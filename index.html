@@ -63,11 +63,11 @@
                         <button class="chip active" onclick="setFilter('all', this)">Tất cả</button>   
                         <button class="chip" onclick="fetchRecommendations(this)" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333; border: none; font-weight: 900;">✨ Dành cho bạn</button>
                         
-                        <button class="chip" onclick="setFilter('dieu1', this)">Điều 1</button>
-                        <button class="chip" onclick="setFilter('dieu2', this)">Điều 2</button>
-                        <button class="chip" onclick="setFilter('dieu3', this)">Điều 3</button>
-                        <button class="chip" onclick="setFilter('dieu4', this)">Điều 4</button>
-                        <button class="chip" onclick="setFilter('dieu5', this)">Điều 5</button>
+                        <button class="chip" onclick="setFilter('dieu1', this)">Học tập & NCKH</button>
+                        <button class="chip" onclick="setFilter('dieu2', this)">Nội quy & Kỷ luật</button>
+                        <button class="chip" onclick="setFilter('dieu3', this)">VH-VN-TDTT</button>
+                        <button class="chip" onclick="setFilter('dieu4', this)">HĐ Cộng đồng</button>
+                        <button class="chip" onclick="setFilter('dieu5', this)">Khen thưởng</button>
                     </div>
                 </div>
                 <div id="events-list"></div>
@@ -145,11 +145,11 @@
             const maxTotalScore = 90;  
 
             const categoryStats = {
-                dieu1: { name: "Điều 1", base: 15, max: 20 },
-                dieu2: { name: "Điều 2", base: 7, max: 25 },
-                dieu3: { name: "Điều 3", base: 6, max: 20 },
-                dieu4: { name: "Điều 4", base: 15, max: 15 },
-                dieu5: { name: "Điều 5", base: 7, max: 10 }
+                dieu1: { name: "Học tập & NCKH", base: 15, max: 20 },
+                dieu2: { name: "Nội quy & Kỷ luật", base: 7, max: 25 },
+                dieu3: { name: "VH-VN-TDTT", base: 6, max: 20 },
+                dieu4: { name: "HĐ Cộng đồng", base: 15, max: 15 },
+                dieu5: { name: "Khen thưởng", base: 7, max: 10 }
             };
 
             // 2. Quét kho sự kiện để gom điểm
@@ -247,14 +247,36 @@
                 
                 if (data.success) {
                     // Gắn thêm icon sinh động tùy theo mảng hoạt động
+                    // Gắn thêm icon sinh động CHUẨN 5 ĐIỀU
                     mockEvents = data.data.map(ev => {
+                        // Gọi từ điển để dịch category hiện tại sang đúng Điều mấy
+                        const dieuKey = categoryToDieu[ev.category] || ev.category;
                         let iconUrl = "https://img.icons8.com/parakeet-line/48/event.png"; // Mặc định
+
+                        // Gắn icon dựa trên 5 Điều
+                        switch (dieuKey) {
+                            case 'dieu1': // Học tập & NCKH
+                                iconUrl = "https://img.icons8.com/parakeet-line/48/book.png"; 
+                                break;
+                            case 'dieu2': // Nội quy, quy chế
+                                iconUrl = "https://img.icons8.com/parakeet-line/48/shield.png"; // Cái khiên kỷ luật
+                                break;
+                            case 'dieu3': // VH, VN, TDTT
+                                iconUrl = "https://img.icons8.com/parakeet-line/48/crowd.png"; // Thể thao giải trí
+                                break;
+                            case 'dieu4': // Cộng đồng
+                                iconUrl = "https://img.icons8.com/parakeet-line/48/handshake.png"; // Kết nối cộng đồng
+                                break;
+                            case 'dieu5': // Điểm cộng, thành tích
+                                iconUrl = "https://img.icons8.com/parakeet-line/48/trophy.png"; // Cúp vàng
+                                break;
+                        }
+                        
+                        // Vẫn giữ một vài icon "đặc sản" nếu thích sự cá nhân hóa (AI, code, game)
                         if(ev.category === 'ai_dev') iconUrl = "https://img.icons8.com/parakeet-line/48/bot.png";
                         if(ev.category === 'devops' || ev.category === 'blockchain') iconUrl = "https://img.icons8.com/parakeet-line/48/code.png";
                         if(ev.category === 'esports') iconUrl = "https://img.icons8.com/parakeet-line/48/controller.png";
-                        if(ev.category === 'volunteer') iconUrl = "https://img.icons8.com/parakeet-line/48/fire-element.png";
-                        
-                        // Ghép data từ server với các trường cần cho UI (type: open)
+
                         return { ...ev, type: "open", icon: iconUrl }; 
                     });
 
@@ -304,7 +326,14 @@
                     
                     // Lấy đúng tên Điều từ TỪ ĐIỂN để hiển thị lên Tag
                     const dieuKey = categoryToDieu[event.category] || event.category;
-                    const dieuNames = { dieu1: 'Điều 1', dieu2: 'Điều 2', dieu3: 'Điều 3', dieu4: 'Điều 4', dieu5: 'Điều 5' };
+                    // Cập nhật tên xịn xò cho 5 Điều
+                    const dieuNames = { 
+                        dieu1: 'Học tập & NCKH', 
+                        dieu2: 'Nội quy & Kỷ luật', 
+                        dieu3: 'VH-VN-TDTT', 
+                        dieu4: 'HĐ Cộng đồng', 
+                        dieu5: 'Khen thưởng' 
+                    };
                     let catName = dieuNames[dieuKey] || 'Sự kiện';
 
                     container.innerHTML += `
@@ -522,7 +551,7 @@
             registeredEvents.forEach(ev => {
                 reminderList.innerHTML += `
                     <div class="event-card" style="border-left: 5px solid #ffc107; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
-                        <div class="event-icon"><img src="https://img.icons8.com/color/48/ringing-bell.png" alt="bell"></div>
+                        <div class="event-icon"><img src="https://img.icons8.com/fluency/48/bell.png" alt="bell"></div>
                         <div class="event-info">
                             <h4 style="color: #d32f2f;">${ev.title}</h4>
                             <p style="font-weight: bold; color: #555;">🕒 ${ev.time}</p>
