@@ -80,12 +80,12 @@ app.post('/api/register', (req, res) => {
 });
 // --- MOCK DATA HOẠT ĐỘNG ---
 let mockEvents = [
-    { id: 1, title: "Seminar: Tương lai của AI & Machine Learning", category: "ai_dev", points: 5, time: "20/03/2026" },
-    { id: 2, title: "Workshop: Triển khai dự án với Docker & AWS", category: "devops", points: 5, time: "22/03/2026" },
-    { id: 3, title: "Talkshow: Ứng dụng Blockchain trong thực tế", category: "blockchain", points: 4, time: "25/03/2026" },
-    { id: 4, title: "Giải đấu E-sports UIT: Genshin Impact & Roblox", category: "esports", points: 3, time: "26/03/2026" },
-    { id: 5, title: "Chiến dịch Mùa hè xanh 2026", category: "volunteer", points: 10, time: "01/06/2026" },
-    { id: 6, title: "Cuộc thi Nhiếp ảnh: Khoảnh khắc sinh viên", category: "photography", points: 4, time: "15/04/2026" }
+    { id: 1, title: "Seminar: Tương lai của AI & Machine Learning", category: "ai_dev", points: 5, time: "20/03/2026", link: "https:Sample.com" },
+    { id: 2, title: "Workshop: Triển khai dự án với Docker & AWS", category: "devops", points: 5, time: "22/03/2026", link: "https:Sample.com" },
+    { id: 3, title: "Talkshow: Ứng dụng Blockchain trong thực tế", category: "blockchain", points: 4, time: "25/03/2026", link: "https:Sample.com" },
+    { id: 4, title: "Giải đấu E-sports UIT: Genshin Impact & Roblox", category: "esports", points: 3, time: "26/03/2026", link: "https:Sample.com" },
+    { id: 5, title: "Chiến dịch Mùa hè xanh 2026", category: "volunteer", points: 10, time: "01/06/2026", link: "https:Sample.com" },
+    { id: 6, title: "Cuộc thi Nhiếp ảnh: Khoảnh khắc sinh viên", category: "photography", points: 4, time: "15/04/2026", link: "https:Sample.com" }
 ];
 // --- API QUẢN LÝ SỰ KIỆN (CỦA ADMIN) ---
 // Lấy tất cả sự kiện

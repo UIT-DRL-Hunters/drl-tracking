@@ -307,6 +307,7 @@
                     const dieuNames = { dieu1: 'Điều 1', dieu2: 'Điều 2', dieu3: 'Điều 3', dieu4: 'Điều 4', dieu5: 'Điều 5' };
                     let catName = dieuNames[dieuKey] || 'Sự kiện';
 
+                    // ... (đoạn trên giữ nguyên)
                     container.innerHTML += `
                         <div class="event-card">
                             <div class="event-icon ${event.type}"><img src="${event.icon}" alt="icon"></div>
@@ -315,9 +316,12 @@
                                 <p>${event.time}</p>
                                 <span style="font-size: 9px; color: white; background: #6c757d; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">${catName}</span>
                             </div>
-                            <div class="event-action">
+                            <div class="event-action" style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
                                 <span class="event-points ${event.type === 'open' ? 'highlight' : ''}">+${event.points} ĐRL</span>
-                                ${buttonHTML}
+                                <div style="display: flex; gap: 5px;">
+                                    <a href="${event.link || '#'}" target="_blank" class="btn-action" style="background: #f8f9fa; color: #333; text-decoration: none; padding: 5px 10px; display: inline-flex; align-items: center;">CHI TIẾT</a>
+                                    ${buttonHTML}
+                                </div>
                             </div>
                         </div>
                     `;
