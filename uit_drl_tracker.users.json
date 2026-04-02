@@ -1,0 +1,52 @@
+[{
+  "_id": {
+    "$oid": "69c512c1d49d18e039c87a62"
+  },
+  "mssv": "25521400",
+  "password": "HoangPhu@1402",
+  "name": "Nguyễn Đăng Hoàng Phú",
+  "role": "student",
+  "preferences": [
+    "ai_dev",
+    "devops",
+    "blockchain",
+    "esports",
+    "photography",
+    "volunteer"
+  ],
+  "__v": 6,
+  "registeredEvents": [
+    1,
+    2,
+    3,
+    1774526194504,
+    7,
+    4
+  ]
+},
+{
+  "_id": {
+    "$oid": "69c51cd91e9b0ce475ae1a8d"
+  },
+  "mssv": "admin",
+  "password": "admin",
+  "name": "Quản trị viên Hệ thống",
+  "role": "admin",
+  "preferences": [],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69c5fb422c7c219257f4d303"
+  },
+  "mssv": "123456",
+  "password": "123456",
+  "name": "hphuss",
+  "role": "student",
+  "preferences": [
+    "ai_dev",
+    "devops"
+  ],
+  "registeredEvents": [],
+  "__v": 0
+}]
