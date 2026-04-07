@@ -243,14 +243,14 @@
         async function loadEventsFromServer() {
             try {
                 // 1. Lấy danh sách toàn bộ sự kiện
-                const response = await fetch('http://localhost:3000/api/events');
+                const response = await fetch('http://127.0.0.1:3000/api/events');
                 const data = await response.json();
                 
                 // 2. Lấy danh sách ID MÀ SINH VIÊN ĐÃ ĐĂNG KÝ TỪ DATABASE
                 const mssv = localStorage.getItem('uit_mssv');
                 let registeredIds = [];
                 if (mssv && mssv !== 'Khách') {
-                    const regRes = await fetch(`http://localhost:3000/api/users/${mssv}/registered`);
+                    const regRes = await fetch(`http://127.0.0.1:3000/api/users/${mssv}/registered`);
                     const regData = await regRes.json();
                     if (regData.success) registeredIds = regData.data;
                 }
@@ -373,7 +373,7 @@
 
             // 3. Gọi xuống Backend để xin danh sách đã được lọc qua "Bias"
             try {
-                const response = await fetch(`http://localhost:3000/api/events/recommend?mssv=${mssv}`);
+                const response = await fetch(`http://127.0.0.1:3000/api/events/recommend?mssv=${mssv}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -484,7 +484,7 @@
 
             try {
                 // 1. Gọi API "Đổ bê tông" vào MongoDB
-                const response = await fetch('http://localhost:3000/api/events/register', {
+                const response = await fetch('http://127.0.0.1:3000/api/events/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ mssv: mssv, eventId: currentEventId })

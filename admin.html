@@ -102,7 +102,7 @@
         }
             // Load danh sách sự kiện từ Backend
             async function fetchEvents() {
-                const res = await fetch('http://localhost:3000/api/events', { cache: 'no-store' });
+                const res = await fetch('http://127.0.0.1:3000/api/events', { cache: 'no-store' });
                 const data = await res.json();
                 const list = document.getElementById('admin-events-list');
                 list.innerHTML = '';
@@ -142,7 +142,7 @@
             // Xóa sự kiện
             async function deleteEvent(id) {
                 if(confirm("Bạn có chắc muốn xóa sự kiện này?")) {
-                    await fetch(`http://localhost:3000/api/events/${id}`, { method: 'DELETE' });
+                    await fetch(`http://127.0.0.1:3000/api/events/${id}`, { method: 'DELETE' });
                     fetchEvents(); // Load lại danh sách
                 }
             }
