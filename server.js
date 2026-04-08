@@ -40,20 +40,21 @@ const Event = mongoose.model('Event', eventSchema);
 // 3. SEEDING (Dữ liệu mẫu)
 const seedDatabase = async () => {
     try {
+        // Kiểm tra xem database có trống không
         const eventCount = await Event.countDocuments();
         if (eventCount === 0) {
-            const mockEvents = [
-                { id: 1, title: "Seminar: AI & Data Science tại UIT", category: "dieu1", points: 5, time: "20/03/2026" },
-                { id: 2, title: "Workshop: C++ Nâng cao", category: "dieu1", points: 5, time: "22/03/2026" },
-                { id: 4, title: "Giải đấu E-sports: Liên Quân UIT", category: "dieu3", points: 3, time: "26/03/2026" },
-                { id: 5, title: "Ngày hội hiến máu nhân đạo", category: "dieu4", points: 10, time: "01/06/2026" }
-            ];
-            await Event.insertMany(mockEvents);
+            console.log('⏳ Local DB trống, đang đọc từ events.json để bơm dữ liệu...');
+            
+            // Đọc trực tiếp file events.json
+            const eventsData = require('./events.json'); 
+            
+            // Bơm toàn bộ mảng data vào MongoDB
+            await Event.insertMany(eventsData);
+            console.log(`✅ Đã bơm thành công ${eventsData.length} sự kiện "hàng real" vào Database!`);
         }
-        if (await User.countDocuments({ role: 'admin' }) === 0) {
-            await User.create({ mssv: 'admin', password: 'admin', name: 'Quản trị viên', role: 'admin' });
-        }
-    } catch (e) { console.log(e); }
+    } catch (err) {
+        console.error('❌ Lỗi khi bơm dữ liệu:', err);
+    }
 };
 
 // 4. API HỆ THỐNG

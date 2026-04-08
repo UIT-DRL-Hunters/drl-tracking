@@ -1,4 +1,20 @@
+/* --- KHAI BÁO BIẾN CHO VÒNG TRÒN --- */
+:root {
+    --inner-circle-bg: white;
+    --empty-track-bg: #e0e0e0;
+    --circle-text: #333;
+}
 
+body.dark-mode {
+    --inner-circle-bg: #2d2d2d;
+    --empty-track-bg: #444;
+    --circle-text: #ffffff;
+}
+
+/* Thêm hiệu ứng mượt cho ruột vòng tròn */
+.circle div, .circle span { 
+    transition: background-color 0.2s ease, color 0.2s ease; 
+}
 /* --- 12. TRANG ĐĂNG NHẬP (LOGIN) --- */
 .login-body {
     background: linear-gradient(135deg, #f0f2f5, #e0e8f5);
@@ -400,7 +416,7 @@ body {
 .theme-toggle span {
     position: absolute;
     /* transition với cubic-bezier giúp icon có độ nảy nhẹ cực kỳ đã mắt */
-    transition: all 0.8s cubic-bezier(0.68, -0.55, 0.26, 1.55); 
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.26, 1.55); 
 }
 
 /* Trạng thái Sáng (Light Mode - Mặc định) */
@@ -433,7 +449,7 @@ body, .profile-card, .progress-section, .details-section, .events-section,
 .history-section, .qr-section, .popup-box, .login-container, .sidebar, 
 .bottom-nav, .sidebar-item, .event-card, .chip, #search-input, .qr-box,
 h2, h3, h4, p, span, .circle, .circle::before {
-    transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease !important;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 body.dark-mode {
     background-color: #1a1a1a !important; /* Xám than nhẹ dịu cho mắt */

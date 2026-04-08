@@ -36,7 +36,7 @@
             </div>
 
             <div class="progress-section">
-                <h3 id="score-text">TỔNG ĐIỂM RÈN LUYỆN: 0/90</h3>
+                <h3 id="score-text">TỔNG ĐIỂM RÈN LUYỆN: 0/100</h3>
                 <div class="total-progress-bar">
                     <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
                 </div>
@@ -140,27 +140,23 @@
         // --- 5. LOGIC TÍNH ĐIỂM & THANH TIẾN ĐỘ ---
         // --- 5. LOGIC TÍNH ĐIỂM & THANH TIẾN ĐỘ TỰ ĐỘNG ---
         function updateScore() {
-            // 1. Cấu hình điểm gốc (Giả sử đây là điểm ông đã có sẵn từ trước)
-            const baseTotalScore = 65; 
-            const maxTotalScore = 90;  
+            // 1. Cấu hình điểm chuẩn (Max 100)
+            const maxTotalScore = 100;  
 
+            // 2. Điểm sàn (base) đã reset về 0
             const categoryStats = {
-                dieu1: { name: "Học tập & NCKH", base: 15, max: 20 },
-                dieu2: { name: "Nội quy & Kỷ luật", base: 7, max: 25 },
-                dieu3: { name: "VH-VN-TDTT", base: 6, max: 20 },
-                dieu4: { name: "HĐ Cộng đồng", base: 15, max: 15 },
-                dieu5: { name: "Khen thưởng", base: 7, max: 10 }
+                dieu1: { name: "Học tập & NCKH", base: 0, max: 30 },
+                dieu2: { name: "Nội quy & Kỷ luật", base: 0, max: 20 },
+                dieu3: { name: "VH-VN-TDTT", base: 0, max: 25 },
+                dieu4: { name: "HĐ Cộng đồng", base: 0, max: 15 },
+                dieu5: { name: "Khen thưởng", base: 0, max: 10 }
             };
 
-            // 2. Quét kho sự kiện để gom điểm
+            // 3. Gom điểm từ các sự kiện ĐÃ ĐĂNG KÝ
             let earnedByCategory = { dieu1: 0, dieu2: 0, dieu3: 0, dieu4: 0, dieu5: 0 };
-            let totalEarned = 0;
-
+            
             mockEvents.forEach(event => {
                 if (event.type === "registered") {
-                    totalEarned += event.points; 
-                    
-                    // Dùng TỪ ĐIỂN để chỉ định cộng điểm vào đúng vòng tròn Điều mấy
                     const dieuKey = categoryToDieu[event.category] || event.category;
                     if (dieuKey && earnedByCategory[dieuKey] !== undefined) {
                         earnedByCategory[dieuKey] += event.points; 
@@ -168,39 +164,57 @@
                 }
             });
 
-            // 3. Cập nhật thanh điểm tổng
-            let currentTotal = baseTotalScore + totalEarned;
+            // 4. Tính toán lại trần điểm cho từng Điều (Không được vượt max)
+            let currentTotal = 0;
+            const catKeys = ['dieu1', 'dieu2', 'dieu3', 'dieu4', 'dieu5'];
+            
+            catKeys.forEach(key => {
+                let currentCatScore = categoryStats[key].base + earnedByCategory[key];
+                if (currentCatScore > categoryStats[key].max) {
+                    currentCatScore = categoryStats[key].max; // Chặn trần
+                }
+                categoryStats[key].current = currentCatScore; // BÍ QUYẾT FIX LỖI "UNDEFINED" LÀ ĐÂY NÈ
+                currentTotal += currentCatScore; // Cộng dồn vào tổng lớn
+            });
+
+            // 5. Chặn trần điểm tổng và tính %
             if (currentTotal > maxTotalScore) currentTotal = maxTotalScore;
             let percentTotal = (currentTotal / maxTotalScore) * 100;
 
+            // 6. Render lại thanh Tiến độ tổng
             document.getElementById('score-text').innerText = `TỔNG ĐIỂM RÈN LUYỆN: ${currentTotal}/${maxTotalScore}`;
             document.getElementById('progress-fill').style.width = `${percentTotal}%`;
 
-            // 4. Cập nhật các vòng tròn chi tiết
+            if (currentTotal >= maxTotalScore) {
+                document.getElementById('progress-fill').style.backgroundColor = "#007bff"; 
+            } else {
+                document.getElementById('progress-fill').style.backgroundColor = "#28a745"; 
+            }
+
+            // 7. Vẽ lại các vòng tròn chi tiết (CSS lo màu Dark Mode)
             const circlesContainer = document.getElementById('circles-container');
             if (!circlesContainer) return;
-            circlesContainer.innerHTML = ""; // Xóa các vòng tròn cũ
+            circlesContainer.innerHTML = ""; 
 
-            // Duyệt qua 5 điều để vẽ lại vòng tròn
-            const catKeys = ['dieu1', 'dieu2', 'dieu3', 'dieu4', 'dieu5'];
+            const themeColors = {
+                dieu1: "#3b82f6", dieu2: "#8b5cf6", dieu3: "#ec4899", 
+                dieu4: "#10b981", dieu5: "#f59e0b"
+            };
+
             catKeys.forEach(key => {
-                let currentCatScore = categoryStats[key].base + earnedByCategory[key];
-                if (currentCatScore > categoryStats[key].max) currentCatScore = categoryStats[key].max; // Không cho vượt trần
+                const stat = categoryStats[key];
+                let percentCat = (stat.current / stat.max) * 100;
                 
-                let percentCat = (currentCatScore / categoryStats[key].max) * 100;
-                
-                // Đổi màu thông minh: Dưới 50% là Đỏ, 50-80% là Vàng, trên 80% là Xanh
-                let color = "#dc3545"; // Đỏ
-                if (percentCat >= 80) color = "#28a745"; // Xanh lá
-                else if (percentCat >= 50) color = "#ffc107"; // Vàng
-                if (currentCatScore === categoryStats[key].max) color = "#007bff"; // Tràn cây thì cho Xanh dương UIT luôn
+                let themeColor = themeColors[key];
+                let activeColor = percentCat > 0 ? themeColor : "#ccc";
+                let glowEffect = percentCat > 0 ? `box-shadow: 0 0 12px ${activeColor}60;` : '';
 
                 circlesContainer.innerHTML += `
                     <div class="circle-item">
-                        <div class="circle" style="background: conic-gradient(${color} ${percentCat}%, #e0e0e0 0);">
-                            <span>${currentCatScore}/${categoryStats[key].max}</span>
+                        <div class="circle" style="background-color: var(--empty-track-bg); background-image: conic-gradient(${activeColor} ${percentCat}%, transparent 0); border: 2px solid ${activeColor}; ${glowEffect}">
+                            <span style="position: relative; z-index: 10; font-weight: 900; color: var(--circle-text);">${stat.current}/${stat.max}</span>
                         </div>
-                        <p>${categoryStats[key].name}</p>
+                        <p style="margin-top: 8px; color: ${activeColor}; font-weight: 800; text-align: center; font-size: 11px;">${stat.name}</p>
                     </div>
                 `;
             });
@@ -302,11 +316,10 @@
             
             const container = document.getElementById('events-list');
             if (!container) return;
-            container.innerHTML = ""; 
-
+            
+            // Lọc sự kiện theo từ khóa và tab (giữ nguyên logic của ông)
             const filteredEvents = mockEvents.filter(event => {
                 const matchText = event.title.toLowerCase().includes(searchText);
-                // Dùng TỪ ĐIỂN để quy đổi mã Backend sang mã Điều
                 const dieuKey = categoryToDieu[event.category] || event.category;
                 const matchCategory = (currentFilter === 'all') || (dieuKey === currentFilter);
                 
@@ -316,25 +329,23 @@
             if (filteredEvents.length === 0) {
                 container.innerHTML = `<p style="text-align: center; color: #777; font-size: 13px; margin-top: 20px;">Không tìm thấy sự kiện phù hợp 🥲</p>`;
             } else {
+                // 🚀 BÍ QUYẾT TĂNG TỐC NẰM Ở ĐÂY: Tạo một biến chuỗi rỗng
+                let htmlBuffer = "";
+
                 filteredEvents.forEach(event => {
                     let buttonHTML = (event.type === "registered") 
                         ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
                         : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
                     
-                    // Lấy đúng tên Điều từ TỪ ĐIỂN để hiển thị lên Tag
                     const dieuKey = categoryToDieu[event.category] || event.category;
-                    // Cập nhật tên xịn xò cho 5 Điều
                     const dieuNames = { 
-                        dieu1: 'Học tập & NCKH', 
-                        dieu2: 'Nội quy & Kỷ luật', 
-                        dieu3: 'VH-VN-TDTT', 
-                        dieu4: 'HĐ Cộng đồng', 
-                        dieu5: 'Khen thưởng' 
+                        dieu1: 'Học tập & NCKH', dieu2: 'Nội quy & Kỷ luật', 
+                        dieu3: 'VH-VN-TDTT', dieu4: 'HĐ Cộng đồng', dieu5: 'Khen thưởng' 
                     };
                     let catName = dieuNames[dieuKey] || 'Sự kiện';
 
-                    // ... (đoạn trên giữ nguyên)
-                    container.innerHTML += `
+                    // 🚀 CỘNG DỒN HTML VÀO BIẾN TẠM (Không đụng chạm gì tới giao diện lúc này)
+                    htmlBuffer += `
                         <div class="event-card">
                             <div class="event-icon ${event.type}"><img src="${event.icon}" alt="icon"></div>
                             <div class="event-info">
@@ -352,9 +363,12 @@
                         </div>
                     `;
                 });
-            }
-            localStorage.setItem('uit_events', JSON.stringify(mockEvents));
 
+                // 🚀 RÁP HOÀN CHỈNH RỒI MỚI IN RA MÀN HÌNH 1 LẦN DUY NHẤT
+                container.innerHTML = htmlBuffer;
+            }
+            
+            localStorage.setItem('uit_events', JSON.stringify(mockEvents));
             renderReminders();
         }
 
@@ -378,10 +392,11 @@
 
                 if (data.success) {
                     const container = document.getElementById('events-list');
-                    container.innerHTML = ""; // Xóa danh sách cũ đi
+                    
+                    // 🚀 BÍ QUYẾT TĂNG TỐC TẠI ĐÂY: Dùng biến chuỗi tạm
+                    let htmlBuffer = ""; 
 
                     // 4. Vẽ lại danh sách sự kiện Backend trả về
-                    // 4. Vẽ lại danh sách sự kiện Backend trả về (ĐÃ FIX ĐỒNG BỘ TRẠNG THÁI)
                     data.data.forEach((event, index) => {
                         const isTopMatch = index < 2; 
                         const bgColor = isTopMatch ? '#fff0f5' : '#fafafa';
@@ -390,16 +405,16 @@
                             ? `<span style="font-size: 9px; color: white; background: #ff4757; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">✨ Trúng sở thích</span>`
                             : `<span style="font-size: 9px; color: white; background: #6c757d; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">Gợi ý thêm</span>`;
 
-                        // BÍ QUYẾT LÀ ĐÂY: Tìm xem event này ở mảng mockEvents cục bộ đã bị đổi type thành "registered" chưa
+                        // Tìm xem event này ở mảng mockEvents cục bộ đã bị đổi type thành "registered" chưa
                         const localEvent = mockEvents.find(e => e.id === event.id);
                         const isRegistered = localEvent && localEvent.type === "registered";
 
-                        // Dựa vào trạng thái isRegistered để quyết định vẽ nút nào
                         let buttonHTML = isRegistered 
                             ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
                             : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
 
-                        container.innerHTML += `
+                        // 🚀 CỘNG DỒN HTML VÀO BIẾN TẠM THAY VÌ IN RA TRỰC TIẾP
+                        htmlBuffer += `
                             <div class="event-card" style="background-color: ${bgColor}; border-color: ${borderColor};">
                                 <div class="event-icon ${isRegistered ? 'registered' : 'open'}"><img src="https://img.icons8.com/parakeet-line/48/star.png" alt="icon"></div>
                                 <div class="event-info">
@@ -412,11 +427,14 @@
                                     <div style="display: flex; gap: 5px;">
                                         <a href="${event.link || 'https://example.com'}" target="_blank" class="btn-action" style="background: #f8f9fa; color: #333; text-decoration: none; padding: 5px 10px; display: inline-flex; align-items: center;">CHI TIẾT</a>
                                         ${buttonHTML}
+                                    </div>
                                 </div>
-</div>
                             </div>
                         `;
                     });
+
+                    // 🚀 RÁP HOÀN CHỈNH RỒI MỚI IN RA MÀN HÌNH 1 LẦN DUY NHẤT
+                    container.innerHTML = htmlBuffer;
                 }
             } catch (error) {
                 console.error("Lỗi:", error);
@@ -630,6 +648,8 @@
             
             // Lưu trạng thái vào máy để F5 không bị mất
             localStorage.setItem('uit_theme', isDark ? 'dark' : 'light');
+            
+            // GỌI LẠI HÀM NÀY ĐỂ VÒNG TRÒN ĐỔI THEO MÀU NỀN TỨC THÌ
         }
 
         function loadTheme() {
