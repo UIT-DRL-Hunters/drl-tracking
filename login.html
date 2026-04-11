@@ -60,11 +60,12 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Lưu trạng thái
+                    // Lưu trạng thái & LƯU TOKEN
                     localStorage.setItem('uit_logged_in', 'true');
                     localStorage.setItem('uit_mssv', data.user.mssv); 
                     localStorage.setItem('uit_role', data.user.role); 
                     localStorage.setItem('uit_name', data.user.name);
+                    localStorage.setItem('uit_token', data.token); // <- Đây là dòng quyết định!
 
                     // CHIA LUỒNG TẠI ĐÂY
                     if (data.user.role === 'admin') {

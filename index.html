@@ -137,22 +137,34 @@
     </div>
 
     <script>
-        // --- 5. LOGIC TÍNH ĐIỂM & THANH TIẾN ĐỘ ---
+        // --- CHẠY NGAY LẬP TỨC FIX LỖI GIẬT DARK MODE (Issue 28) ---
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('uit_theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        }
+        loadTheme();
+
+        // --- ĐỒNG BỘ ĐĂNG XUẤT GIỮA CÁC TAB (Issue 30) ---
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'uit_logged_in' && e.newValue === null) {
+                alert("Tài khoản đã được đăng xuất từ tab khác!");
+                window.location.href = "login.html";
+            }
+        });
+
         // --- 5. LOGIC TÍNH ĐIỂM & THANH TIẾN ĐỘ TỰ ĐỘNG ---
         function updateScore() {
-            // 1. Cấu hình điểm chuẩn (Max 100)
             const maxTotalScore = 100;  
-
-            // 2. Điểm sàn (base) đã reset về 0
             const categoryStats = {
-                dieu1: { name: "Học tập & NCKH", base: 0, max: 30 },
-                dieu2: { name: "Nội quy & Kỷ luật", base: 0, max: 20 },
-                dieu3: { name: "VH-VN-TDTT", base: 0, max: 25 },
-                dieu4: { name: "HĐ Cộng đồng", base: 0, max: 15 },
-                dieu5: { name: "Khen thưởng", base: 0, max: 10 }
+                dieu1: { name: "Học tập & NCKH", base: 0, max: 30, current: 0 },
+                dieu2: { name: "Nội quy & Kỷ luật", base: 0, max: 20, current: 0 },
+                dieu3: { name: "VH-VN-TDTT", base: 0, max: 25, current: 0 },
+                dieu4: { name: "HĐ Cộng đồng", base: 0, max: 15, current: 0 },
+                dieu5: { name: "Khen thưởng", base: 0, max: 10, current: 0 }
             };
 
-            // 3. Gom điểm từ các sự kiện ĐÃ ĐĂNG KÝ
             let earnedByCategory = { dieu1: 0, dieu2: 0, dieu3: 0, dieu4: 0, dieu5: 0 };
             
             mockEvents.forEach(event => {
@@ -164,24 +176,21 @@
                 }
             });
 
-            // 4. Tính toán lại trần điểm cho từng Điều (Không được vượt max)
             let currentTotal = 0;
             const catKeys = ['dieu1', 'dieu2', 'dieu3', 'dieu4', 'dieu5'];
             
             catKeys.forEach(key => {
                 let currentCatScore = categoryStats[key].base + earnedByCategory[key];
                 if (currentCatScore > categoryStats[key].max) {
-                    currentCatScore = categoryStats[key].max; // Chặn trần
+                    currentCatScore = categoryStats[key].max;
                 }
-                categoryStats[key].current = currentCatScore; // BÍ QUYẾT FIX LỖI "UNDEFINED" LÀ ĐÂY NÈ
-                currentTotal += currentCatScore; // Cộng dồn vào tổng lớn
+                categoryStats[key].current = currentCatScore; 
+                currentTotal += currentCatScore; 
             });
 
-            // 5. Chặn trần điểm tổng và tính %
             if (currentTotal > maxTotalScore) currentTotal = maxTotalScore;
             let percentTotal = (currentTotal / maxTotalScore) * 100;
 
-            // 6. Render lại thanh Tiến độ tổng
             document.getElementById('score-text').innerText = `TỔNG ĐIỂM RÈN LUYỆN: ${currentTotal}/${maxTotalScore}`;
             document.getElementById('progress-fill').style.width = `${percentTotal}%`;
 
@@ -191,7 +200,6 @@
                 document.getElementById('progress-fill').style.backgroundColor = "#28a745"; 
             }
 
-            // 7. Vẽ lại các vòng tròn chi tiết (CSS lo màu Dark Mode)
             const circlesContainer = document.getElementById('circles-container');
             if (!circlesContainer) return;
             circlesContainer.innerHTML = ""; 
@@ -237,34 +245,30 @@
             if (index === 1) renderHistory();
         }
 
-        // --- 2. DỮ LIỆU & LOCALSTORAGE ---
-        // --- 2. DỮ LIỆU TỪ SERVER ---
-        let mockEvents = []; // Khởi tạo mảng rỗng chờ rót data
+        // --- 2. DỮ LIỆU TỪ SERVER VÀ BẢO MẬT ---
+        let mockEvents = []; 
         let currentEventId = null;
         let currentFilter = 'all';
-        // --- BỘ TỪ ĐIỂN QUY ĐỔI CATEGORY SANG ĐIỀU RÈN LUYỆN ---
         const categoryToDieu = {
-            'ai_dev': 'dieu1',      // Học thuật -> Điều 1
-            'devops': 'dieu1',      // Học thuật -> Điều 1
-            'blockchain': 'dieu1',  // Học thuật -> Điều 1
-            'photography': 'dieu2', // Kỹ năng -> Điều 2
-            'esports': 'dieu3',     // Thể thao/Giải trí -> Điều 3
-            'volunteer': 'dieu4',   // Tình nguyện xã hội -> Điều 4
+            'ai_dev': 'dieu1', 'devops': 'dieu1', 'blockchain': 'dieu1',
+            'photography': 'dieu2', 'esports': 'dieu3', 'volunteer': 'dieu4',
             'dieu1': 'dieu1', 'dieu2': 'dieu2', 'dieu3': 'dieu3', 'dieu4': 'dieu4', 'dieu5': 'dieu5'
         };
 
-        // Hàm gọi API lấy sự kiện từ Backend
+        // Hàm gọi API lấy sự kiện từ Backend (Thêm Token Bảo Mật)
         async function loadEventsFromServer() {
             try {
-                // 1. Lấy danh sách toàn bộ sự kiện
                 const response = await fetch('http://127.0.0.1:3000/api/events');
                 const data = await response.json();
                 
-                // 2. Lấy danh sách ID MÀ SINH VIÊN ĐÃ ĐĂNG KÝ TỪ DATABASE
                 const mssv = localStorage.getItem('uit_mssv');
+                const token = localStorage.getItem('uit_token');
                 let registeredIds = [];
-                if (mssv && mssv !== 'Khách') {
-                    const regRes = await fetch(`http://127.0.0.1:3000/api/users/${mssv}/registered`);
+                
+                if (mssv && mssv !== 'Khách' && token) {
+                    const regRes = await fetch(`http://127.0.0.1:3000/api/users/${mssv}/registered`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     const regData = await regRes.json();
                     if (regData.success) registeredIds = regData.data;
                 }
@@ -286,9 +290,7 @@
                         if(ev.category === 'devops' || ev.category === 'blockchain') iconUrl = "https://img.icons8.com/parakeet-line/48/code.png";
                         if(ev.category === 'esports') iconUrl = "https://img.icons8.com/parakeet-line/48/controller.png";
 
-                        // 3. SO SÁNH: Nếu ID sự kiện nằm trong mảng Database -> Đổi trạng thái thành "registered"
                         const isRegistered = registeredIds.includes(ev.id);
-
                         return { ...ev, type: isRegistered ? "registered" : "open", icon: iconUrl }; 
                     });
 
@@ -297,7 +299,7 @@
                 }
             } catch (error) {
                 console.error("Lỗi lấy sự kiện:", error);
-                showToast("❌Không kết nối được máy chủ!");
+                showToast("❌ Không kết nối được máy chủ!");
             }
         }
 
@@ -313,38 +315,29 @@
         function handleFilter() {
             const searchInput = document.getElementById('search-input');
             const searchText = searchInput ? searchInput.value.toLowerCase() : '';
-            
             const container = document.getElementById('events-list');
             if (!container) return;
             
-            // Lọc sự kiện theo từ khóa và tab (giữ nguyên logic của ông)
             const filteredEvents = mockEvents.filter(event => {
                 const matchText = event.title.toLowerCase().includes(searchText);
                 const dieuKey = categoryToDieu[event.category] || event.category;
                 const matchCategory = (currentFilter === 'all') || (dieuKey === currentFilter);
-                
                 return matchText && matchCategory;
             });
 
             if (filteredEvents.length === 0) {
                 container.innerHTML = `<p style="text-align: center; color: #777; font-size: 13px; margin-top: 20px;">Không tìm thấy sự kiện phù hợp 🥲</p>`;
             } else {
-                // 🚀 BÍ QUYẾT TĂNG TỐC NẰM Ở ĐÂY: Tạo một biến chuỗi rỗng
                 let htmlBuffer = "";
-
                 filteredEvents.forEach(event => {
                     let buttonHTML = (event.type === "registered") 
                         ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
                         : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
                     
                     const dieuKey = categoryToDieu[event.category] || event.category;
-                    const dieuNames = { 
-                        dieu1: 'Học tập & NCKH', dieu2: 'Nội quy & Kỷ luật', 
-                        dieu3: 'VH-VN-TDTT', dieu4: 'HĐ Cộng đồng', dieu5: 'Khen thưởng' 
-                    };
+                    const dieuNames = { dieu1: 'Học tập & NCKH', dieu2: 'Nội quy & Kỷ luật', dieu3: 'VH-VN-TDTT', dieu4: 'HĐ Cộng đồng', dieu5: 'Khen thưởng' };
                     let catName = dieuNames[dieuKey] || 'Sự kiện';
 
-                    // 🚀 CỘNG DỒN HTML VÀO BIẾN TẠM (Không đụng chạm gì tới giao diện lúc này)
                     htmlBuffer += `
                         <div class="event-card">
                             <div class="event-icon ${event.type}"><img src="${event.icon}" alt="icon"></div>
@@ -363,8 +356,6 @@
                         </div>
                     `;
                 });
-
-                // 🚀 RÁP HOÀN CHỈNH RỒI MỚI IN RA MÀN HÌNH 1 LẦN DUY NHẤT
                 container.innerHTML = htmlBuffer;
             }
             
@@ -372,31 +363,29 @@
             renderReminders();
         }
 
-        // --- GỌI API THUẬT TOÁN ĐỀ XUẤT TỪ BACKEND ---
+        // --- GỌI API THUẬT TOÁN ĐỀ XUẤT TỪ BACKEND (Issue 29 - Đã kèm Token) ---
         async function fetchRecommendations(btnElement) {
-            // 1. Đổi màu nút để người dùng biết đang chọn tab nào
             document.querySelectorAll('.chip').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
 
-            // 2. Lấy MSSV đang đăng nhập từ bộ nhớ máy
             const mssv = localStorage.getItem('uit_mssv');
-            if (!mssv || mssv === 'Khách') {
+            const token = localStorage.getItem('uit_token');
+
+            if (!mssv || mssv === 'Khách' || !token) {
                 showToast("⚠️ Vui lòng đăng nhập để xem đề xuất!");
                 return;
             }
 
-            // 3. Gọi xuống Backend để xin danh sách đã được lọc qua "Bias"
             try {
-                const response = await fetch(`http://127.0.0.1:3000/api/events/recommend?mssv=${mssv}`);
+                const response = await fetch(`http://127.0.0.1:3000/api/events/recommend?mssv=${mssv}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 const data = await response.json();
 
                 if (data.success) {
                     const container = document.getElementById('events-list');
-                    
-                    // 🚀 BÍ QUYẾT TĂNG TỐC TẠI ĐÂY: Dùng biến chuỗi tạm
                     let htmlBuffer = ""; 
 
-                    // 4. Vẽ lại danh sách sự kiện Backend trả về
                     data.data.forEach((event, index) => {
                         const isTopMatch = index < 2; 
                         const bgColor = isTopMatch ? '#fff0f5' : '#fafafa';
@@ -405,7 +394,6 @@
                             ? `<span style="font-size: 9px; color: white; background: #ff4757; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">✨ Trúng sở thích</span>`
                             : `<span style="font-size: 9px; color: white; background: #6c757d; padding: 2px 5px; border-radius: 4px; margin-top: 4px; display: inline-block;">Gợi ý thêm</span>`;
 
-                        // Tìm xem event này ở mảng mockEvents cục bộ đã bị đổi type thành "registered" chưa
                         const localEvent = mockEvents.find(e => e.id === event.id);
                         const isRegistered = localEvent && localEvent.type === "registered";
 
@@ -413,7 +401,6 @@
                             ? `<button class="btn-action registered">ĐÃ ĐĂNG KÝ</button>`
                             : `<button class="btn-action open" onclick="openPopup('${event.title}', ${event.id})">ĐĂNG KÝ</button>`;
 
-                        // 🚀 CỘNG DỒN HTML VÀO BIẾN TẠM THAY VÌ IN RA TRỰC TIẾP
                         htmlBuffer += `
                             <div class="event-card" style="background-color: ${bgColor}; border-color: ${borderColor};">
                                 <div class="event-icon ${isRegistered ? 'registered' : 'open'}"><img src="https://img.icons8.com/parakeet-line/48/star.png" alt="icon"></div>
@@ -432,13 +419,11 @@
                             </div>
                         `;
                     });
-
-                    // 🚀 RÁP HOÀN CHỈNH RỒI MỚI IN RA MÀN HÌNH 1 LẦN DUY NHẤT
                     container.innerHTML = htmlBuffer;
                 }
             } catch (error) {
                 console.error("Lỗi:", error);
-                showToast("❌ Không kết nối được Backend. Nhớ bật server nha!");
+                showToast("❌ Không kết nối được Backend.");
             }
         }
 
@@ -492,25 +477,29 @@
             setTimeout(() => { toast.remove(); }, 3000);
         }
 
+        // (Kèm Token vào API Đăng ký)
         async function confirmRegister() {
             const mssv = localStorage.getItem('uit_mssv');
-            if (!mssv || mssv === 'Khách') {
+            const token = localStorage.getItem('uit_token');
+
+            if (!mssv || mssv === 'Khách' || !token) {
                 showToast("⚠️ Vui lòng đăng nhập để đăng ký!");
                 closePopup();
                 return;
             }
 
             try {
-                // 1. Gọi API "Đổ bê tông" vào MongoDB
                 const response = await fetch('http://127.0.0.1:3000/api/events/register', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
                     body: JSON.stringify({ mssv: mssv, eventId: currentEventId })
                 });
                 const data = await response.json();
 
                 if (data.success) {
-                    // 2. Database báo lưu OK thì mới đổi màu nút trên Web
                     const ev = mockEvents.find(e => e.id === currentEventId);
                     if (ev) ev.type = "registered";
                     
@@ -531,72 +520,60 @@
         
         function handleLogout() {
             localStorage.removeItem('uit_logged_in');
+            localStorage.removeItem('uit_token');
             window.location.href = "login.html";
         }
 
         // --- 7. LOGIC TRANG CÁ NHÂN & QR CODE ĐỘNG ---
         function loadUserProfile() {
-            // Lấy MSSV và Tên từ bộ nhớ máy
             const mssv = localStorage.getItem('uit_mssv') || 'Khách';
             const name = localStorage.getItem('uit_name') || 'SINH VIÊN UIT';
 
-            // Cập nhật ở Trang 3 (Cá nhân)
             const mssvDisplay = document.getElementById('profile-mssv-display');
             if (mssvDisplay && mssv !== 'Khách') mssvDisplay.innerText = `MSSV: ${mssv}`;
             
             const nameDisplay = document.querySelector('.profile-name');
             if (nameDisplay) nameDisplay.innerText = name;
 
-            // Cập nhật ở Trang Chủ (Page 0)
             const mainProfileName = document.querySelector('.profile-info h2');
-            if (mainProfileName) mainProfileName.innerText = `${name} (${mssv})`;
+            if (mainProfileName && mssv !== 'Khách') mainProfileName.innerText = `${name} (${mssv})`;
 
-            // Tạo QR code
             refreshQRCode(false); 
         }
 
-        // Thêm tham số showNotification = true
+        // [Issue 25] Sửa lỗi chính tả "thàng công" -> "thành công"
         function refreshQRCode(showNotification = true) {
             const mssv = localStorage.getItem('uit_mssv') || 'Khách';
             if (mssv === 'Khách') return;
 
             const qrImage = document.getElementById('profile-qr-code');
             if (qrImage) {
-                // Tạo một đoạn mã ngẫu nhiên dựa trên thời gian thực
                 const timestamp = new Date().getTime(); 
                 const qrData = `UIT-${mssv}-${timestamp}`;
                 
-                // Gọi API tạo QR mới
                 qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`;
                 
-                // Chỉ hiện thông báo khi bấm nút (showNotification = true)
                 if(showNotification && typeof showToast === "function") {
-                    showToast('🔄Đã làm mới mã QR thàng công!');
+                    showToast('🔄 Đã làm mới mã QR thành công!');
                 }
             }
         }
 
-
-        // --- TÍNH NĂNG 1: HIỂN THỊ LÊN UI NHẮC NHỞ ---
         function renderReminders() {
             const reminderSection = document.getElementById('reminder-section');
             const reminderList = document.getElementById('reminder-list');
             if (!reminderSection || !reminderList) return;
 
-            // Tìm những sự kiện user đã đăng ký
             const registeredEvents = mockEvents.filter(ev => ev.type === "registered");
             
-            // Nếu chưa đăng ký cái nào thì giấu cái khung nhắc lịch đi
             if (registeredEvents.length === 0) {
                 reminderSection.style.display = 'none';
                 return;
             }
 
-            // Nếu có sự kiện thì hiện lên và vẽ lại danh sách
             reminderSection.style.display = 'block';
             reminderList.innerHTML = '';
 
-            // Duyệt qua các sự kiện đã đăng ký và tạo thẻ Reminder
             registeredEvents.forEach(ev => {
                 reminderList.innerHTML += `
                     <div class="event-card" style="border-left: 5px solid #ffc107; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
@@ -616,52 +593,31 @@
             });
         }
 
-        // --- TÍNH NĂNG 9: TẠO LINK GOOGLE CALENDAR ---
         function addToCalendar(title, dateStr) {
-            // Chuyển đổi chuỗi ngày DD/MM/YYYY thành định dạng YYYYMMDD cho Google
             const parts = dateStr.split('/');
             if(parts.length === 3) {
-                // Ví dụ: 20/03/2026 -> 20260320
                 const formattedDate = `${parts[2]}${parts[1]}${parts[0]}`;
-                
-                // Mã hóa các ký tự đặc biệt (khoảng trắng, dấu tiếng Việt) thành URL
                 const eventTitle = encodeURIComponent("[UIT ĐRL] " + title);
                 const eventDetails = encodeURIComponent("Nhắc nhở tham gia sự kiện điểm danh lấy ĐRL. Đừng quên quét mã QR nhé!");
                 const location = encodeURIComponent("Trường ĐH CNTT (UIT)");
 
-                // Ép thành link Google Calendar xịn xò
                 const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${formattedDate}/${formattedDate}&details=${eventDetails}&location=${location}`;
-                
-                // Mở Google Calendar sang một tab mới
                 window.open(gCalUrl, '_blank');
             } else {
                 showToast("⚠️ Ngày tháng không hợp lệ để lưu lịch!");
             }
         }
 
-        // --- 10. LOGIC BẬT/TẮT DARK MODE ---
         function toggleTheme() {
             const body = document.body;
             body.classList.toggle('dark-mode');
-            
             const isDark = body.classList.contains('dark-mode');
-            
-            // Lưu trạng thái vào máy để F5 không bị mất
             localStorage.setItem('uit_theme', isDark ? 'dark' : 'light');
-            
-            // GỌI LẠI HÀM NÀY ĐỂ VÒNG TRÒN ĐỔI THEO MÀU NỀN TỨC THÌ
         }
 
-        function loadTheme() {
-            // Lấy trí nhớ từ máy xem lần trước user xài màu gì
-            const savedTheme = localStorage.getItem('uit_theme');
-            if (savedTheme === 'dark') {
-                document.body.classList.add('dark-mode');
-            }
-        }
-        // --- KHỞI CHẠY LẦN ĐẦU ---
+        // KHỞI CHẠY
         loadUserProfile();
-        loadEventsFromServer(); // Chạy hàm xịn xò mình vừa viết
+        loadEventsFromServer();
     </script>
     <div id="toast-container"></div>
 </body>
