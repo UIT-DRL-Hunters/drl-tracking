@@ -270,7 +270,15 @@
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const regData = await regRes.json();
-                    if (regData.success) registeredIds = regData.data;
+                    
+                    // --- BẮT QUẢ TANG KẺ MẠO DANH VÀ ĐÁ VĂNG ---
+                    if (!regData.success) {
+                        showToast(`🚨 ${regData.message}`);
+                        setTimeout(handleLogout, 2500); // 2.5s sau văng ra trang Login
+                        return; // Dừng luôn không load giao diện nữa
+                    }
+                    
+                    registeredIds = regData.data;
                 }
 
                 if (data.success) {
