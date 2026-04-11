@@ -1,161 +1,181 @@
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Admin - Quản lý sự kiện</title>
-        <link rel="stylesheet" href="style.css">
-        <style>
-            /* 1. Ép body trải dài đúng 100% màn hình, không cho cuộn trang tổng */
-            body { 
-                padding-left: 0 !important; 
-                margin: 0; 
-                height: 100vh; /* Chiều cao đúng bằng màn hình */
-                background: #f0f2f5; 
-                display: flex; /* Dùng flex để canh giữa cái khung admin */
-                align-items: center; 
-                justify-content: center;
-                overflow: hidden; /* Cấm tuyệt đối việc cuộn trang body */
-            }
-            
-            /* 2. Cái khung Admin nay sẽ đóng vai trò như một cửa sổ ứng dụng */
-            .admin-container { 
-                width: 95%; /* Trải dài 95% chiều ngang */
-                height: 90vh; /* Chiếm 90% chiều cao màn hình */
-                padding: 30px; 
-                background: white; 
-                border-radius: 15px; 
-                border: 1px solid black; 
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                display: flex; 
-                flex-direction: column; /* Xếp các phần tử bên trong theo chiều dọc */
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Quản lý sự kiện</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { 
+            padding-left: 0 !important; 
+            margin: 0; 
+            height: 100vh;
+            background: #f0f2f5; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            overflow: hidden; 
+        }
+        
+        .admin-container { 
+            width: 95%; 
+            height: 90vh; 
+            padding: 30px; 
+            background: white; 
+            border-radius: 15px; 
+            border: 1px solid black; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex; 
+            flex-direction: column; 
+        }
 
-            .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-            .form-row input, .form-row select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
-            
-            /* 3. Phép thuật nằm ở đây: Chỉ cho phép cuộn khu vực danh sách */
-            #admin-events-list {
-                flex: 1; /* Chiếm trọn không gian còn lại ở phía dưới */
-                overflow-y: auto; /* Bật thanh cuộn DỌC khi danh sách dài */
-                padding-right: 10px; /* Chừa khoảng trống cho thanh cuộn khỏi đè lên chữ */
-                margin-top: 10px;
-            }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-row input, .form-row select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+        
+        #admin-events-list {
+            flex: 1; 
+            overflow-y: auto; 
+            padding-right: 10px; 
+            margin-top: 10px;
+        }
 
-            /* --- RESPONSIVE CHO ĐIỆN THOẠI --- */
-            @media (max-width: 768px) {
-                body { overflow: auto; height: auto; align-items: flex-start; } /* Trả lại thanh cuộn cho đt */
-                .admin-container { width: 100%; height: auto; min-height: 100vh; margin: 0; border-radius: 0; padding: 15px; }
-                .form-row { flex-direction: column; }
-            }
+        @media (max-width: 768px) {
+            body { overflow: auto; height: auto; align-items: flex-start; } 
+            .admin-container { width: 100%; height: auto; min-height: 100vh; margin: 0; border-radius: 0; padding: 15px; }
+            .form-row { flex-direction: column; }
+        }
 
-            /* --- Căn chỉnh lại khoảng cách để nhường chỗ cho danh sách --- */
-            .admin-container h2 { margin-top: 0; margin-bottom: 15px; }
-            .admin-container h3 { margin-top: 10px; margin-bottom: 10px; }
-            .btn-logout { margin-bottom: 10px !important; }
-            hr { margin: 15px 0; }
-        </style>
-    </head>
-    <body>
-        <div class="admin-container">
-            <h2 style="color: #007bff; text-align: center;">⚙️ ADMIN DASHBOARD</h2>
-            <button class="btn-logout" onclick="logout()" style="margin-bottom: 20px;">ĐĂNG XUẤT</button>
-            
-            <h3>➕ Thêm sự kiện mới</h3>
-            <div class="form-row">
-                <input type="text" id="ev-title" placeholder="Tên sự kiện" required>
-                <select id="ev-cat">
-                    <option value="dieu1">Điều 1 (Học tập & NCKH)</option>
-                    <option value="dieu2">Điều 2 (Kỷ luật & Kỹ năng)</option>
-                    <option value="dieu3">Điều 3 (Văn hóa, Thể thao)</option>
-                    <option value="dieu4">Điều 4 (Tình nguyện xã hội)</option>
-                    <option value="dieu5">Điều 5 (Ban cán sự, Thành tích xuất sắc)</option>
-                </select>
-            </div>
-            <div class="form-row">
-                <input type="number" id="ev-points" placeholder="Điểm Rèn Luyện (VD: 5)" required>
-                <input type="text" id="ev-time" placeholder="Thời gian (VD: 20/03/2026)" required>
-            </div>
-            <button class="btn-action open" style="width: 100%; padding: 10px;" onclick="addEvent()">TẠO SỰ KIỆN</button>
-
-            <hr style="margin: 20px 0;">
-
-            <h3>📋 Danh sách sự kiện hiện tại</h3>
-            <div id="admin-events-list"></div>
+        .admin-container h2 { margin-top: 0; margin-bottom: 15px; }
+        .admin-container h3 { margin-top: 10px; margin-bottom: 10px; }
+        .btn-logout { margin-bottom: 10px !important; }
+        hr { margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h2 style="color: #007bff; text-align: center;">⚙️ ADMIN DASHBOARD</h2>
+        <button class="btn-logout" onclick="logout()" style="margin-bottom: 20px;">ĐĂNG XUẤT</button>
+        
+        <h3>➕ Thêm sự kiện mới</h3>
+        <div class="form-row">
+            <input type="text" id="ev-title" placeholder="Tên sự kiện" required>
+            <select id="ev-cat">
+                <option value="dieu1">Điều 1 (Học tập & NCKH)</option>
+                <option value="dieu2">Điều 2 (Kỷ luật & Kỹ năng)</option>
+                <option value="dieu3">Điều 3 (Văn hóa, Thể thao)</option>
+                <option value="dieu4">Điều 4 (Tình nguyện xã hội)</option>
+                <option value="dieu5">Điều 5 (Ban cán sự, Thành tích xuất sắc)</option>
+            </select>
         </div>
+        <div class="form-row">
+            <input type="number" id="ev-points" placeholder="Điểm Rèn Luyện (VD: 5)" required>
+            <input type="text" id="ev-time" placeholder="Thời gian (VD: 20/03/2026)" required>
+        </div>
+        <button class="btn-action open" style="width: 100%; padding: 10px;" onclick="addEvent()">TẠO SỰ KIỆN</button>
 
-        <script>
-            // Hàm hiển thị Toast Notification
+        <hr style="margin: 20px 0;">
+
+        <h3>📋 Danh sách sự kiện hiện tại</h3>
+        <div id="admin-events-list"></div>
+    </div>
+
+    <script>
+        // --- 1. BẢO VỆ TRANG ADMIN ---
+        if (localStorage.getItem('uit_role') !== 'admin') {
+            alert("Bạn không có quyền truy cập trang này!");
+            window.location.href = "login.html";
+        }
+
+        // --- 2. ĐỒNG BỘ ĐĂNG XUẤT ---
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'uit_logged_in' && e.newValue === null) window.location.href = "login.html";
+        });
+
         function showToast(message) {
             const container = document.getElementById('toast-container');
-            if (!container) return; // Đề phòng lỗi nếu chưa có container
-            
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = 'toast';
-            toast.innerHTML = `
-                <span class="toast-icon">🎉</span>
-                <span class="toast-msg">${message}</span>
-            `;
+            toast.innerHTML = `<span class="toast-icon">🎉</span><span class="toast-msg">${message}</span>`;
             container.appendChild(toast);
-            
-            // Tự động xóa sau 3 giây
             setTimeout(() => { toast.remove(); }, 3000);
         }
-            // Load danh sách sự kiện từ Backend
-            async function fetchEvents() {
-                const res = await fetch('http://127.0.0.1:3000/api/events', { cache: 'no-store' });
-                const data = await res.json();
-                const list = document.getElementById('admin-events-list');
-                list.innerHTML = '';
-                
-                data.data.forEach(ev => {
-                    list.innerHTML += `
-                        <div class="event-card" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                            <div>
-                                <strong style="font-size: 14px;">${ev.title}</strong>
-                                <p style="margin: 0; font-size: 12px; color: #555;">${ev.time} | +${ev.points} ĐRL</p>
-                            </div>
-                            <button class="btn-logout" style="width: auto; padding: 5px 10px; margin: 0;" onclick="deleteEvent(${ev.id})">XÓA</button>
+
+        // --- 3. LẤY DANH SÁCH (Kèm Token) ---
+        async function fetchEvents() {
+            const res = await fetch('http://127.0.0.1:3000/api/events', { 
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('uit_token') }
+            });
+            const data = await res.json();
+            const list = document.getElementById('admin-events-list');
+            list.innerHTML = '';
+            
+            data.data.forEach(ev => {
+                list.innerHTML += `
+                    <div class="event-card" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                        <div>
+                            <strong style="font-size: 14px;">${ev.title}</strong>
+                            <p style="margin: 0; font-size: 12px; color: #555;">${ev.time} | +${ev.points} ĐRL</p>
                         </div>
-                    `;
-                });
-            }
+                        <button class="btn-logout" style="width: auto; padding: 5px 10px; margin: 0;" onclick="deleteEvent(${ev.id})">XÓA</button>
+                    </div>
+                `;
+            });
+        }
 
-            // Thêm sự kiện
-            async function addEvent() {
-                const newEv = {
-                    title: document.getElementById('ev-title').value,
-                    category: document.getElementById('ev-cat').value,
-                    points: document.getElementById('ev-points').value,
-                    time: document.getElementById('ev-time').value
-                };
+        // --- 4. THÊM SỰ KIỆN (Kèm Token) ---
+        async function addEvent() {
+            const newEv = {
+                title: document.getElementById('ev-title').value,
+                category: document.getElementById('ev-cat').value,
+                points: Number(document.getElementById('ev-points').value),
+                time: document.getElementById('ev-time').value
+            };
 
-                await fetch('http://localhost:3000/api/events', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newEv)
-                });
-                
+            const response = await fetch('http://127.0.0.1:3000/api/events', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('uit_token')
+                },
+                body: JSON.stringify(newEv)
+            });
+            
+            const data = await response.json();
+            if(data.success) {
                 showToast("Tạo sự kiện thành công!");
-                fetchEvents(); // Load lại danh sách
+                fetchEvents();
+            } else {
+                alert("Lỗi: " + data.message);
             }
+        }
 
-            // Xóa sự kiện
-            async function deleteEvent(id) {
-                if(confirm("Bạn có chắc muốn xóa sự kiện này?")) {
-                    await fetch(`http://127.0.0.1:3000/api/events/${id}`, { method: 'DELETE' });
-                    fetchEvents(); // Load lại danh sách
+        // --- 5. XÓA SỰ KIỆN (Kèm Token) ---
+        async function deleteEvent(id) {
+            if(confirm("Bạn có chắc muốn xóa sự kiện này?")) {
+                const response = await fetch(`http://127.0.0.1:3000/api/events/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('uit_token') }
+                });
+                const data = await response.json();
+                if(data.success) {
+                    fetchEvents();
+                } else {
+                    alert("Lỗi: " + data.message);
                 }
             }
+        }
 
-            function logout() {
-                localStorage.clear();
-                window.location.href = "login.html";
-            }
+        function logout() {
+            localStorage.removeItem('uit_logged_in');
+            localStorage.removeItem('uit_token');
+            localStorage.removeItem('uit_role');
+            window.location.href = "login.html";
+        }
 
-            // Chạy ngay khi mở trang
-            fetchEvents();
-            
-        </script>
-        <div id="toast-container"></div>
-    </body>
-    </html>
+        // Chạy ngay khi mở trang
+        fetchEvents();
+        
+    </script>
+    <div id="toast-container"></div>
+</body>
+</html>
