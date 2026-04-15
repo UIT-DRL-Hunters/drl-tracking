@@ -162,7 +162,13 @@ app.delete('/api/events/:id', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 // Lấy đề xuất sự kiện
-app.get('/api/events/recommend', async (req, res) => {
+// --- BỊT LỖ HỔNG IDOR 1: Lấy đề xuất sự kiện ---
+app.get('/api/events/recommend', verifyToken, async (req, res) => {
+    // Kẻ gian đổi mssv trên URL? Chặn ngay bằng Token thật!
+    if (req.user.mssv !== req.query.mssv) {
+        return res.status(403).json({ success: false, message: "⚠️ Phát hiện mạo danh! Từ chối truy cập." });
+    }
+
     const user = await User.findOne({ mssv: req.query.mssv });
     if (!user) return res.json({ success: false });
     const recommended = await Event.find({ category: { $in: user.preferences } });
@@ -171,6 +177,7 @@ app.get('/api/events/recommend', async (req, res) => {
 });
 
 // Sinh viên đăng ký tham gia sự kiện (Yêu cầu Token xác thực)
+// Sinh viên đăng ký tham gia sự kiện (Yêu cầu Token xác thực + Check ID hợp lệ)
 app.post('/api/events/register', verifyToken, async (req, res) => {
     const { mssv, eventId } = req.body;
     
@@ -178,6 +185,13 @@ app.post('/api/events/register', verifyToken, async (req, res) => {
     if (req.user.mssv !== mssv) {
          return res.status(403).json({ success: false, message: "Không thể đăng ký dùm người khác!" });
     }
+
+    // --- [BẢN VÁ BUG-012]: Kiểm tra sự kiện có tồn tại thật không ---
+    const eventExists = await Event.findOne({ id: eventId });
+    if (!eventExists) {
+        return res.status(404).json({ success: false, message: "Sự kiện ma! Không tồn tại trên hệ thống." });
+    }
+    // ----------------------------------------------------------------
 
     const user = await User.findOne({ mssv });
     if (user && !user.registeredEvents.includes(eventId)) {
@@ -187,8 +201,13 @@ app.post('/api/events/register', verifyToken, async (req, res) => {
     res.json({ success: true });
 });
 
-// Lấy danh sách sự kiện đã đăng ký
-app.get('/api/users/:mssv/registered', async (req, res) => {
+// --- BỊT LỖ HỔNG IDOR: Lấy danh sách sự kiện đã đăng ký ---
+app.get('/api/users/:mssv/registered', verifyToken, async (req, res) => {
+    // Kẻ gian đổi mssv trên URL? Chặn ngay bằng Token thật!
+    if (req.user.mssv !== req.params.mssv) {
+        return res.status(403).json({ success: false, message: "⚠️ Phát hiện mạo danh! Từ chối truy cập." });
+    }
+
     const user = await User.findOne({ mssv: req.params.mssv });
     res.json({ success: true, data: user ? user.registeredEvents : [] });
 });
