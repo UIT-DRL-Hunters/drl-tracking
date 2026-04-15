@@ -292,7 +292,7 @@ body {
 }
 
 .profile-name { margin: 0; font-size: 20px; font-weight: 900; }
-.profile-mssv { margin: 5px 0 15px 0; font-size: 14px; opacity: 0.9; }
+.profile-mssv { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
 
 /* Tag Khoa và Lớp */
 .profile-tags { display: flex; justify-content: center; gap: 10px; }
